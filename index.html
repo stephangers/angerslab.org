@@ -99,6 +99,27 @@
     @media (max-width: 820px) { .footer-grid { grid-template-columns: 1fr; } }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
     .mt-1{margin-top:6px}.mt-2{margin-top:12px}.mt-3{margin-top:18px}.mt-4{margin-top:26px}
+  
+    .banner{position:relative;margin:clamp(10px,2vw,16px) 0 0;}
+    .banner .wrap{position:relative}
+    .banner-figure{
+      width:100%;
+      aspect-ratio:21/9;
+      background:url('assets/images/banner-wnt.svg') center/cover no-repeat;
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      border:1px solid color-mix(in oklab, var(--text) 10%, transparent);
+    }
+    .banner .caption{
+      position:absolute;inset:auto 16px 14px 16px;
+      background:color-mix(in oklab, var(--bg) 35%, transparent);
+      backdrop-filter:blur(6px) saturate(130%);
+      color:var(--text);
+      padding:8px 12px;border-radius:12px;
+      border:1px solid color-mix(in oklab, var(--text) 10%, transparent);
+      font-weight:600;display:inline-flex;gap:10px;align-items:center;
+    }
+
   </style>
 </head>
 <body>
@@ -124,8 +145,14 @@
     </div>
   </header>
 
-  <main id="main">
-    <section id="home" class="hero">
+  \1
+    <section class="banner" aria-label="Research banner: Wnt signaling, regeneration, stem cells">
+      <div class="wrap">
+        <div class="banner-figure" role="img" aria-label="Abstract Wnt/Frizzled signalosome clusters, regenerative gradients, and stem cell niche"></div>
+        <div class="caption">Wnt signaling • Tissue regeneration • Stem cells</div>
+      </div>
+    </section>
+<section id="home" class="hero">
       <div class="wrap hero-grid">
         <div>
           <span class="eyebrow">University of Toronto • Donnelly Centre</span>
