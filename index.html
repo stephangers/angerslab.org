@@ -121,6 +121,29 @@
     }
 
   </style>
+
+  <style>
+    /* --- Mobile-friendly additions (safe defaults) --- */
+    :root { --line:#e2e8f0; --ink:#0f172a; --muted:#475569; }
+    img, svg, video { max-width: 100%; height: auto; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 3rem 1.25rem; }
+    header .wrap { display:flex; align-items:center; justify-content:space-between; gap:.75rem; flex-wrap:wrap; }
+    nav { display:flex; flex-wrap:wrap; gap:.75rem; }
+    .grid { display:grid; grid-template-columns: repeat(12, 1fr); grid-gap: 20px; }
+    .card { border:1px solid var(--line); border-radius:16px; padding:1.25rem; background:#fff; }
+    .btn { display:inline-block; padding:.6rem .9rem; border-radius:12px; white-space:nowrap; }
+    @media (max-width: 720px){
+      h1{font-size:1.6rem} h2{font-size:1.25rem} h3{font-size:1.05rem}
+      .wrap{padding:2rem 1.25rem}
+      .grid{grid-template-columns:repeat(6,1fr); grid-gap:14px}
+      .card{padding:1rem; border-radius:14px}
+      .cta-row{display:flex; gap:.75rem; flex-wrap:wrap}
+    }
+    /* Ensure our "Our research" section looks good even if site uses different CSS */
+    #about .section-head h2 { margin: 0; }
+    #about .section-head .sub { color: var(--muted); margin-top:.25rem; }
+  </style>
+
 </head>
 <body>
   <a class="sr-only" href="#main">Skip to content</a>
@@ -181,35 +204,7 @@
       </div>
     </section>
 
-    
-    <section id="about">
-      <div class="wrap">
-        <div class="section-head">
-          <h2>Our research</h2>
-          <p class="sub">From receptor logic to regenerative therapies</p>
-        </div>
-        <div class="card" style="grid-column: span 12">
-          <p class="mt-2">
-            The Angers Lab investigates how <b>Wnt/Frizzled signaling networks control stem cell behavior</b> in development, 
-            regeneration, and disease, and how these circuits can be manipulated to create <b>new therapeutic strategies</b>. 
-            We develop <b>synthetic, receptor-specific Wnt agonists</b> to precisely activate defined Frizzled receptors, 
-            enabling systematic dissection of receptor function in cells, organoids, and in vivo models, and translating these insights 
-            into regenerative medicine applications.
-          </p>
-          <p class="mt-2">
-            In parallel, we lead a <b>comprehensive functional genomics program in glioblastoma</b>, applying genome-scale CRISPR-Cas9 
-            screens in patient-derived glioblastoma stem cells (GSCs) to identify genetic vulnerabilities, state-specific dependencies, 
-            and mechanisms of therapy resistance. This work aims to define the molecular circuitry sustaining GBM stemness and to guide 
-            the development of precision therapeutic strategies for this aggressive brain cancer.
-          </p>
-          <div class="cta-row mt-2">
-            <a class="btn" href="research.html">Explore themes</a>
-            <a class="btn" href="publications.html">Key publications</a>
-          </div>
-        </div>
-      </div>
-    </section>
-<section id="research">
+    <section id="research">
       <div class="wrap">
         <div class="section-head">
           <h2>Research programs</h2>
