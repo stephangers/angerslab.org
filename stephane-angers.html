@@ -9,18 +9,45 @@
   <style>
     :root { --bg:#0b0c10; --panel:#111317; --elev:#161a20; --text:#e9eef5; --muted:#aeb6c2; --brand:#59d5ff; --brand-2:#7bffb1; --link:var(--brand); --maxw:1100px; --radius:18px; --shadow:0 10px 30px rgba(0,0,0,.35); }
     @media (prefers-color-scheme: light){ :root{ --bg:#f6f8fb; --panel:#ffffff; --elev:#f1f4f8; --text:#0f172a; --muted:#4b5563; --brand:#005bff; --brand-2:#00ad6b; --link:#0b63ff; }}
-    *{box-sizing:border-box} html,body{height:100%} body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;color:var(--text);background:radial-gradient(1200px 600px at 80% -50%, rgba(89,213,255,.15), transparent 60%), radial-gradient(900px 500px at -10% 0%, rgba(123,255,177,.12), transparent 55%), var(--bg);line-height:1.55}
-    a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+      color:var(--text);
+      background:radial-gradient(1200px 600px at 80% -50%, rgba(89,213,255,.15), transparent 60%),
+                 radial-gradient(900px 500px at -10% 0%, rgba(123,255,177,.12), transparent 55%),
+                 var(--bg);
+      line-height:1.55
+    }
+    a{color:var(--link);text-decoration:none}
+    a:hover{text-decoration:underline}
     .wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(16px,3vw,32px)}
-    header{position:sticky;top:0;z-index:50;backdrop-filter:saturate(140%) blur(8px);background:color-mix(in oklab, var(--bg) 85%, transparent);border-bottom:1px solid color-mix(in oklab, var(--text) 10%, transparent)}
+
+    /* Wnt banner behind the header nav */
+    header{
+      position:sticky;top:0;z-index:50;
+      backdrop-filter:saturate(140%) blur(8px);
+      background:
+        linear-gradient(180deg, color-mix(in oklab, var(--bg) 30%, transparent),
+                               color-mix(in oklab, var(--bg) 55%, transparent)),
+        url('assets/images/banner-wnt.svg') center/cover no-repeat;
+      border-bottom:1px solid color-mix(in oklab, var(--text) 10%, transparent)
+    }
     .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
     .brand{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.2px}
     .brand .logo{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:grid;place-items:center;color:#001319;font-weight:900;box-shadow:var(--shadow)}
     .brand small{display:block;font-weight:600;color:var(--muted);line-height:1}
     nav ul{list-style:none;margin:0;padding:0;display:flex;gap:22px;align-items:center}
-    nav a{color:var(--text);opacity:.9;font-weight:600}
+    nav a{color:var(--text);opacity:.95;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.25)}
     .menu-btn{display:none;background:none;border:none;color:var(--text);font-size:28px}
-    @media (max-width:860px){ nav ul{display:none;position:absolute;top:64px;left:0;right:0;background:var(--panel);border-bottom:1px solid color-mix(in oklab, var(--text) 10%, transparent);padding:12px 18px;flex-direction:column;gap:8px} nav ul.open{display:flex} .menu-btn{display:block} }
+    @media (max-width:860px){
+      nav ul{display:none;position:absolute;top:64px;left:0;right:0;background:var(--panel);
+             border-bottom:1px solid color-mix(in oklab, var(--text) 10%, transparent);
+             padding:12px 18px;flex-direction:column;gap:8px}
+      nav ul.open{display:flex}
+      .menu-btn{display:block}
+    }
 
     main{padding:clamp(28px,6vw,64px) 0}
     .hero{padding:clamp(28px,6vw,64px) 0}
@@ -40,7 +67,6 @@
     .meta{color:var(--muted)}
     ul.tight{margin:0;padding-left:18px}
     ul.tight li{margin:.4rem 0}
-    .pub{margin:10px 0;padding:12px;border-radius:12px;background:color-mix(in oklab, var(--text) 4%, transparent);border:1px solid color-mix(in oklab, var(--text) 10%, transparent)}
     footer{border-top:1px solid color-mix(in oklab, var(--text) 10%, transparent);padding:18px 0 32px;color:var(--muted)}
     .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:24px}
     .footer-grid a{color:var(--muted)}
@@ -81,10 +107,7 @@
           <h1>Stéphane Angers, PhD</h1>
           <p class="sub">Professor & Principal Investigator • Director, Donnelly Centre for Cellular & Biomolecular Research</p>
           <p style="max-width:68ch">Stéphane Angers is a scientist focused on receptor signal transduction, with a longstanding interest in Wnt/Frizzled pathways and their roles in development, tissue homeostasis, and disease. His group combines chemical biology, protein engineering, and functional genomics to map pathway control points and create precision biologics for regeneration.</p>
-          <div class="chips">
-            <span class="chip">Wnt/Frizzled</span><span class="chip">Signalosomes</span><span class="chip">Protein & antibody therapeutics</span><span class="chip">CRISPR screens</span>
-          </div>
-          
+
           <div class="chips" style="margin-top:14px">
             <a class="btn fill" href="assets/docs/Stephane_Angers_CV.pdf">CV (PDF)</a>
             <a class="btn" href="publications.html">Publications</a>
@@ -93,11 +116,12 @@
             <a class="btn" href="https://www.linkedin.com/in/stephane-angers-🇨🇦-75981a6/?originalSubdomain=ca" target="_blank" rel="noopener">LinkedIn</a>
             <a class="btn" href="https://orcid.org/0000-0001-7241-9044" target="_blank" rel="noopener">ORCID</a>
           </div>
-
         </div>
+
         <aside class="right">
           <div class="card" style="text-align:center">
-            <img class="avatar" src="assets/images/people/stephane-angers.jpg" alt="Portrait of Stéphane Angers" onerror="this.style.display='none'; document.getElementById('initials').style.display='grid';" />
+            <img class="avatar" src="assets/images/people/stephane-angers.jpg" alt="Portrait of Stéphane Angers"
+                 onerror="this.style.display='none'; document.getElementById('initials').style.display='grid';" />
             <div id="initials" style="display:none;width:128px;height:128px;border-radius:50%;place-items:center;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#001319;font-weight:900;margin-inline:auto">SA</div>
             <p class="meta" style="margin-top:10px">Donnelly Centre • University of Toronto</p>
             <p class="meta">Toronto, Canada</p>
@@ -107,7 +131,6 @@
             <p class="meta" style="margin-top:8px">Phone: 1-416-946-5398</p>
             <p class="meta">Email: <a href="mailto:info@angerslab.org">info@angerslab.org</a></p>
             <p class="meta">160 College Street, Rm 808, Toronto ON M5S 3E1</p>
-          
             <p class="meta">LinkedIn: <a href="https://www.linkedin.com/in/stephane-angers-🇨🇦-75981a6/?originalSubdomain=ca" target="_blank" rel="noopener">Profile</a></p>
             <p class="meta">ORCID: <a href="https://orcid.org/0000-0001-7241-9044" target="_blank" rel="noopener">0000-0001-7241-9044</a></p>
           </div>
@@ -134,24 +157,10 @@
           <h2 style="margin-top:22px">Translational impact</h2>
           <p>Work from the lab contributed to antibody and surrogate ligand platforms that modulate Wnt signaling. Restoret, an eye-disease therapeutic emerging from this work, is advancing toward clinical trials. Angers is the scientific founder of <a href="https://www.antlera.com" target="_blank" rel="noopener">AntlerA Therapeutics</a>, which is developing these molecules.</p>
 
-          <h2 style="margin-top:22px">Selected publications</h2>
-          <div class="pub">
-            <b>Proximal events in Wnt signal transduction.</b>
-            <div class="meta">Angers S, Moon RT. <i>Nat Rev Mol Cell Biol</i>, 2009.</div>
-          </div>
-          <div class="pub">
-            <b>Wnt signaling in development and tissue homeostasis.</b>
-            <div class="meta">Steinhart Z, Angers S. <i>Development</i>, 2018.</div>
-          </div>
-          <div class="pub">
-            <b>High‑resolution CRISPR screens reveal fitness genes and genotype‑specific cancer liabilities.</b>
-            <div class="meta">Hart T, Chandrashekhar M, Aregger M, … Angers S. <i>Cell</i>, 2015.</div>
-          </div>
-          <p class="meta">Full, automatically updated list on the <a href="publications.html">Publications</a> page.</p>
-
           <h2 style="margin-top:22px">Open positions</h2>
           <p>We welcome motivated trainees across disciplines. Email a CV and a short statement of research interests.</p>
         </div>
+
         <aside class="right">
           <div class="card">
             <b>Links</b>
