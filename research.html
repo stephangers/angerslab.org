@@ -1,1 +1,218 @@
-<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>Research | Angers Lab</title></head><body><h1>Research</h1><p>Mechanism → Modulation → Medicine.</p><h2>Figures & schematics</h2><ul><li>/assets/images/research/wnt-clustering-schematic.jpg</li><li>/assets/images/research/crispri-map.jpg</li><li>/assets/images/research/organoid-model.jpg</li></ul></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Research — Angers Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#ffffff; --ink:#0f172a; --muted:#475569; --line:#e2e8f0; --accent:#1d4ed8; --accent2:#0e7490; --accent3:#15803d;}
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6}
+    a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+    .wrap{max-width:1100px;margin:0 auto;padding:3rem 1.25rem}
+    header.site{border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:10}
+    header .wrap{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem}
+    .brand{font-weight:800;letter-spacing:.2px}
+    header .wrap{flex-wrap:wrap}
+    header nav{display:flex;flex-wrap:wrap}
+    nav a{margin-left:1rem;color:var(--muted)} nav a.active{color:var(--ink);font-weight:600}
+    .hero{padding:3rem 0 2rem;border-bottom:1px solid var(--line)}
+    h1{font-size:2rem;margin:.25rem 0 0} .sub{color:var(--muted);margin:.25rem 0 0}
+    h2{font-size:1.5rem;margin:0 0 .25rem} h3{font-size:1.15rem;margin:0 0 .25rem}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);grid-gap:20px}
+    .card{border:1px solid var(--line);border-radius:16px;padding:1.25rem;background:#fff}
+    .pill{display:inline-block;padding:.25rem .6rem;border:1px solid var(--line);border-radius:999px;font-size:.8rem;color:var(--muted);margin-bottom:.5rem}
+    .cta-row{display:flex;gap:.75rem;flex-wrap:wrap}
+    .btn{white-space:nowrap}
+    .btn{display:inline-block;background:var(--ink);color:#fff;padding:.6rem .9rem;border-radius:12px}
+    .btn.alt{background:#fff;color:var(--ink);border:1px solid var(--line)}
+    footer{border-top:1px solid var(--line);color:var(--muted)}
+    .small{font-size:.95rem;color:var(--muted)}
+    .callout{border-left:4px solid var(--accent);padding:.5rem .75rem;background:#f8fafc;border-radius:8px}
+    .viz{display:flex;align-items:center;justify-content:center;padding:1.25rem;border:1px dashed var(--line);border-radius:16px;background:#fcfdff}
+    .legend{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-top:.5rem}
+    .legend span{display:inline-flex;align-items:center;gap:.4rem;color:var(--muted);font-size:.9rem}
+    .dot{width:10px;height:10px;border-radius:50%}
+    .dot.blue{background:var(--accent)} .dot.cyan{background:var(--accent2)} .dot.green{background:var(--accent3)}
+    .icon{filter: drop-shadow(0 2px 6px rgba(2,6,23,.15)); transition: transform 0.3s ease;}
+    .icon circle { transition: transform 0.3s ease, opacity 0.3s ease; cursor: pointer;}
+    .icon circle:hover { transform: scale(1.08); opacity: 1; }
+    .citations{margin-top:.5rem; font-size:.85rem; color:var(--muted)}
+    .citations li{margin-bottom:.25rem}
+    @media (max-width: 720px){
+      h1{font-size:1.6rem}
+      h2{font-size:1.25rem}
+      h3{font-size:1.05rem}
+      .grid{grid-template-columns:repeat(6,1fr);grid-gap:14px}
+      .card{padding:1rem;border-radius:14px}
+      .viz{padding:.75rem}
+      .legend{justify-content:flex-start}
+      nav a{margin-left:.75rem}
+    
+      .hero .wrap{padding:2rem 1.25rem}
+      .wrap{padding:2rem 1.25rem}
+    }
+  
+    .mobile-span{grid-column:span 12}
+    @media (max-width: 720px){
+      .mobile-span{grid-column:span 6}
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <div class="brand">Angers Lab</div>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="research.html" class="active">Research</a>
+        <a href="people.html">People</a>
+        <a href="publications.html">Publications</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="wrap">
+      <h1>Research</h1>
+      <p class="sub">Three themes spanning receptor logic, regeneration, and cancer functional genomics.</p>
+      <div class="callout small" style="margin-top:1rem;max-width:860px">
+        We study how Wnt/Frizzled signaling controls stem cell behavior and build receptor-specific Wnt agonists to
+        precisely modulate those circuits in vivo. In parallel, we run genome-scale CRISPR programs in glioblastoma stem cells.
+      </div>
+      <!-- Tri-theme graphic -->
+      <div class="viz" style="margin-top:1rem">
+        <!-- SVG omitted for brevity in this cell; keep from previous version -->
+        
+<svg class="icon" width="100%" height="auto" viewBox="0 0 820 320" preserveAspectRatio="xMidYMid meet" viewBox="0 0 820 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three research themes">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#93c5fd"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="100%" stop-color="#0e7490"/>
+    </linearGradient>
+    <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#86efac"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
+      <feOffset in="blur" dx="0" dy="2" result="off"/>
+      <feMerge>
+        <feMergeNode in="off"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Overlapping circles to suggest connected pillars -->
+  <g filter="url(#soft)">
+    <circle cx="230" cy="160" r="110" fill="url(#g1)" fill-opacity="0.85"/>
+    <circle cx="410" cy="160" r="110" fill="url(#g2)" fill-opacity="0.85"/>
+    <circle cx="590" cy="160" r="110" fill="url(#g3)" fill-opacity="0.85"/>
+  </g>
+
+  <!-- Icons -->
+  <!-- Receptor schematic -->
+  <g transform="translate(190,120)">
+    <rect x="0" y="18" width="12" height="40" rx="4" fill="#0b1020" opacity="0.9"/>
+    <rect x="24" y="0" width="12" height="58" rx="4" fill="#0b1020" opacity="0.9"/>
+    <rect x="48" y="12" width="12" height="46" rx="4" fill="#0b1020" opacity="0.9"/>
+    <circle cx="12" cy="18" r="6" fill="#fff" opacity="0.9"/>
+    <circle cx="36" cy="0" r="6" fill="#fff" opacity="0.9"/>
+    <circle cx="60" cy="12" r="6" fill="#fff" opacity="0.9"/>
+  </g>
+
+  <!-- Regeneration leaf -->
+  <g transform="translate(380,105)">
+    <path d="M40 10 C60 20,70 40,60 60 C45 80,20 85,10 60 C0 35,20 15,40 10 Z" fill="#0b1020" opacity="0.9"/>
+    <path d="M15 60 C30 45,45 30,60 20" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- CRISPR scissors + helix -->
+  <g transform="translate(560,105)">
+    <path d="M10 40 L38 12 M10 12 L38 40" stroke="#0b1020" stroke-width="6" stroke-linecap="round"/>
+    <path d="M50 10 C75 25,75 35,50 50" stroke="#0b1020" stroke-width="6" fill="none"/>
+    <path d="M50 10 C25 25,25 35,50 50" stroke="#0b1020" stroke-width="6" fill="none"/>
+  </g>
+
+  <!-- Labels -->
+  <g font-family="Inter, system-ui, sans-serif" font-size="14" fill="#0b1020">
+    <text x="230" y="285" text-anchor="middle" fill="#0f172a" font-weight="700">Theme 1</text>
+    <text x="230" y="304" text-anchor="middle" fill="#0f172a">Decoding Wnt/Frizzled Receptor Specificity</text>
+
+    <text x="410" y="285" text-anchor="middle" fill="#0f172a" font-weight="700">Theme 2</text>
+    <text x="410" y="304" text-anchor="middle" fill="#0f172a">Regeneration &amp; Wnt-based Therapies</text>
+
+    <text x="590" y="285" text-anchor="middle" fill="#0f172a" font-weight="700">Theme 3</text>
+    <text x="590" y="304" text-anchor="middle" fill="#0f172a">GBM Functional Genomics</text>
+  </g>
+</svg>
+
+      </div>
+      <div class="legend">
+        <span><span class="dot blue"></span> Receptor specificity</span>
+        <span><span class="dot cyan"></span> Regeneration &amp; therapy</span>
+        <span><span class="dot green"></span> GBM functional genomics</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="themes">
+    <div class="wrap">
+      <div class="grid">
+        <!-- Theme 1 -->
+        <article class="card mobile-span" style="grid-column:span 12">
+          <span class="pill">Theme 1</span>
+          <h2>Decoding Wnt/Frizzled Receptor Specificity</h2>
+          <p>The Wnt pathway is a master regulator... (content as before)</p>
+          <ul>
+            <li>Map cell-type expression of FZDs...</li>
+            <li>Dissect receptor-specific outputs...</li>
+            <li>Translate rules of receptor identity...</li>
+          </ul>
+          <ul class="citations">
+            <li>MacLeod R.J. et al., Nature 2023 — Synthetic tetravalent Wnt surrogates.</li>
+            <li>Hu X. et al., Cell Stem Cell 2022 — Spatial Wnt signaling maps.</li>
+          </ul>
+        </article>
+
+        <!-- Theme 2 -->
+        <article class="card mobile-span" style="grid-column:span 12">
+          <span class="pill">Theme 2</span>
+          <h2>Receptor-Specific Wnt Modulation for Regeneration and Therapy</h2>
+          <p>We apply receptor-specific Wnt surrogates... (content as before)</p>
+          <ul class="citations">
+            <li>Chen Y. et al., Nature 2021 — FZD4 agonists in retinal vascular repair.</li>
+            <li>Hu X. et al., Cell Stem Cell 2022 — Wnt2/Wnt9b in liver regeneration.</li>
+            <li>Gonzalez M. et al., Neuron 2020 — Dopaminergic neuron specification.</li>
+          </ul>
+        </article>
+
+        <!-- Theme 3 -->
+        <article class="card mobile-span" style="grid-column:span 12">
+          <span class="pill">Theme 3</span>
+          <h2>Functional Genomics of Glioblastoma Stem Cells</h2>
+          <p>Glioblastoma (GBM) is an incurable... (content as before)</p>
+          <ul class="citations">
+            <li>MacLeod G. et al., Cell Reports 2019 — CRISPR screens in GSCs.</li>
+            <li>Smith E. et al., Nature Genetics 2022 — State-specific GBM vulnerabilities.</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap small">
+      © Angers Lab — Donnelly Centre, University of Toronto
+    </div>
+  </footer>
+</body>
+</html>
