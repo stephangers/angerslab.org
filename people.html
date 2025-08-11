@@ -304,12 +304,18 @@ header{
   // --- Bio details block replacing tags ---
   const details = document.createElement('div');
   details.className = 'details';
-  details.innerHTML = `
-    <p><b>Raised:</b> ${p.raised || ''}</p>
-    <p><b>Education:</b> ${p.education || ''}</p>
-    <p><b>Scientific Interests:</b> ${p.interests || ''}</p>
-    <p><b>Pastimes:</b> ${p.pastimes || ''}</p>
-  `;
+  details.innerHTML = ((p.group||'').toLowerCase()==='alumni')
+    ? `
+        <p><b>Years:</b> ${p.years || ''}</p>
+        <p><b>Role:</b> ${p.role || ''}</p>
+        <p><b>Present position:</b> ${p.present || ''}</p>
+      `
+    : `
+        <p><b>Raised:</b> ${p.raised || ''}</p>
+        <p><b>Education:</b> ${p.education || ''}</p>
+        <p><b>Scientific Interests:</b> ${p.interests || ''}</p>
+        <p><b>Pastimes:</b> ${p.pastimes || ''}</p>
+      `;
   box.appendChild(details);
 
 const links = document.createElement('div');
