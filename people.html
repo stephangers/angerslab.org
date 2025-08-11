@@ -185,7 +185,7 @@ header{
 @media (max-width: 980px){ .people-page .card{ grid-column: span 6; } }
 @media (max-width: 640px){ .people-page .card{ grid-column: span 12; } }
 
-/* Bio details block replacing tags */
+/* Bio details styling */
 .people-page .details{
   margin-top:10px;
   text-align:left;
@@ -299,17 +299,25 @@ header{
       const box = document.createElement('div');
       box.innerHTML = `<h3>${p.name||''}</h3><div class="role">${p.role||''}</div>`;
 
-      const tags = document.createElement('div');
-      tags.className = 'tags';
-      (p.tags||[]).forEach(t=>{ const span = document.createElement('span'); span.className='tag'; span.textContent=t; tags.appendChild(span); });
+      
+  // --- Bio details block replacing tags ---
+  const details = document.createElement('div');
+  details.className = 'details';
+  details.innerHTML = `
+    <p><b>Raised:</b> ${p.raised || ''}</p>
+    <p><b>Education:</b> ${p.education || ''}</p>
+    <p><b>Scientific Interests:</b> ${p.interests || ''}</p>
+    <p><b>Pastimes:</b> ${p.pastimes || ''}</p>
+  `;
+  box.appendChild(details);
 
-      const links = document.createElement('div');
+const links = document.createElement('div');
       links.className = 'links';
       if(p.linkedin) links.insertAdjacentHTML('beforeend', `<a href="${p.linkedin}" target="_blank" rel="noopener" aria-label="LinkedIn">${icons.linkedin}<span>LinkedIn</span></a>`);
       if(p.scholar)  links.insertAdjacentHTML('beforeend', `<a href="${p.scholar}" target="_blank" rel="noopener" aria-label="Google Scholar">${icons.scholar}<span>Scholar</span></a>`);
       if(p.orcid)    links.insertAdjacentHTML('beforeend', `<a href="${p.orcid}" target="_blank" rel="noopener" aria-label="ORCID">${icons.orcid}<span>ORCID</span></a>`);
 
-      el.appendChild(img); el.appendChild(box); box.appendChild(links);
+      el.appendChild(img); el.appendChild(box);  box.appendChild(links);
       return el;
     }
 
