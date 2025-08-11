@@ -41,7 +41,7 @@
   {
     "name": "Sichun Lin",
     "role": "Research Technician",
-    "photo": "",
+    "photo": "assets/images/people/sichun-lin.jpg",
     "group": "staff",
     "raised": "Gongan, Hubei, China \ud83c\udde8\ud83c\uddf3",
     "education": "B.Sc. (Hubei University, China), B.Sc. (University of Toronto, Scarborough Campus), M.Sc. (McMaster University)",
@@ -54,7 +54,7 @@
   {
     "name": "Dr. Maira Pedroso De Almeida",
     "role": "Post-doctoral Fellow",
-    "photo": "",
+    "photo": "assets/images/people/Maira-pedroso.jpg",
     "group": "postdoc",
     "raised": "Belo Horizonte, Minas Gerais, Brazil \ud83c\udde7\ud83c\uddf7",
     "education": "B.Sc. (Universidade Federal de Vi\u00e7osa, Brazil), M.Sc. (Universidade Federal de Minas Gerais, Brazil), Ph.D. (Iowa State University, USA)",
@@ -67,7 +67,7 @@
   {
     "name": "Dr. Pierre Thibeault",
     "role": "Post-doctoral Fellow",
-    "photo": "",
+    "photo": "assets/images/people/Pierre-Thibeault.jpg",
     "group": "postdoc",
     "raised": "Welland, Ontario \ud83c\udde8\ud83c\udde6",
     "education": "B.Sc. (Brock University), Ph.D. (University of Western Ontario)",
@@ -80,7 +80,7 @@
   {
     "name": "Andy Yang",
     "role": "Graduate Student",
-    "photo": "",
+    "photo": "assets/images/people/Andy-Yang.jpg",
     "group": "grad",
     "raised": "Markham, Ontario \ud83c\udde8\ud83c\udde6",
     "education": "B.Sc. (University of Toronto)",
@@ -93,7 +93,7 @@
   {
     "name": "Fatemeh Molaei",
     "role": "Graduate Student",
-    "photo": "",
+    "photo": "assets/images/people/Fatemeh-Molaei.jpg",
     "group": "grad",
     "raised": "Kuwait & Iran \ud83c\uddee\ud83c\uddf7",
     "education": "B.Sc. (Shahid Chamran University of Ahwaz), M.Sc. (Mashhad University of Medical Sciences)",
@@ -106,7 +106,7 @@
   {
     "name": "Lillian Kim",
     "role": "Graduate Student",
-    "photo": "",
+    "photo": "assets/images/people/Lillian-Kim.jpg",
     "group": "grad",
     "raised": "Anyang, Korea \ud83c\uddf0\ud83c\uddf7",
     "education": "B.Sc. (University of Toronto)",
@@ -119,7 +119,7 @@
   {
     "name": "Sarah Moldaver",
     "role": "Graduate Student",
-    "photo": "",
+    "photo": "assets/images/people/graham-macleod.jpg",
     "group": "grad",
     "raised": "Toronto, Ontario \ud83c\udde8\ud83c\udde6",
     "education": "B.Sc. (University of Toronto)",
@@ -132,7 +132,7 @@
   {
     "name": "Althea Xu",
     "role": "Graduate Student",
-    "photo": "",
+    "photo": "assets/images/people/graham-macleod.jpg",
     "group": "grad",
     "raised": "Jiaxing, Zhejiang, China \ud83c\udde8\ud83c\uddf3",
     "education": "B.Sc. (McGill University)",
@@ -145,7 +145,7 @@
   {
     "name": "Frank Oteng",
     "role": "Graduate Student",
-    "photo": "",
+    "photo": "assets/images/people/graham-macleod.jpg",
     "group": "grad",
     "raised": "Accra, Ghana \ud83c\uddec\ud83c\udded",
     "education": "B.Sc (Kwame Nkrumah University of Science and Technology)",
@@ -158,7 +158,7 @@
   {
     "name": "Dr. Lucie Wolf",
     "role": "Post-doctoral Fellow",
-    "photo": "",
+    "photo": "assets/images/people/graham-macleod.jpg",
     "group": "postdoc",
     "raised": "Nuremberg, Germany \ud83c\udde9\ud83c\uddea",
     "education": "B.Sc. & M.Sc. Molecular Medicine (University Erlangen, Germany), Dr. rer. nat. (Heidelberg University & German Cancer Research Center, Germany)",
