@@ -1,0 +1,10 @@
+{
+  "page_title": "Angers Lab Publications",
+  "retmax": 400,
+  "queries": [
+    "(Angers S[Author]) AND (2000:3000[DP])",
+    "(Donnelly Centre[Affiliation]) AND (2000:3000[DP])",
+    "(Centre for Cellular and Biomolecular Research[Affiliation]) AND (2000:3000[DP])",
+    "(CCBR[Affiliation]) AND (Toronto[Affiliation]) AND (2000:3000[DP])"
+  ]
+}
