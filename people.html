@@ -82,9 +82,17 @@ header{
   border:1px solid color-mix(in oklab, var(--text) 10%, transparent);
   font-weight:600;display:inline-flex;gap:10px;align-items:center;
 }
+
+/* Enlarge headshots on people page */
+.people-page img {
+    max-width: 320px; /* bigger than typical 150-200px */
+    height: auto;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
 </style>
 </head>
-<body>
+<body class="people-page">
 <a class="sr-only" href="#main">Skip to content</a>
 <header>
 <div class="wrap nav">
@@ -104,7 +112,7 @@ header{
 </ul>
 </nav>
 </div>
-</header><section aria-label="People page banner" class="banner"><div class="wrap"><div aria-label="Abstract Wnt gradient banner" class="banner-figure" role="img"></div><div class="caption">Angers Lab • People</div></div></section>
+</header>
 <main class="wrap" id="main">
 <section class="page-head">
 <span class="chip">Donnelly Centre • U of T</span>
