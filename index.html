@@ -155,7 +155,32 @@
             max-width: 40%;
         }
     }
-    </style>
+    
+/* --- Logo row responsive rules (desktop-first) --- */
+.logo-row{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:clamp(24px, 4vw, 72px);
+  flex-wrap:nowrap; /* keep side-by-side on desktop */
+  margin:6px 0 32px;
+}
+.logo-row img{
+  height:clamp(80px, 14vw, 180px); /* scales with viewport, caps at 180px */
+  width:auto;
+  max-width:40%; /* prevent one logo from dominating */
+  object-fit:contain;
+}
+/* Wrap and shrink on tablets/phones if needed */
+@media (max-width: 820px){
+  .logo-row{ flex-wrap:wrap; }
+  .logo-row img{ height:clamp(60px, 12vw, 140px); max-width:45%; }
+}
+/* Very small phones */
+@media (max-width: 480px){
+  .logo-row img{ height:clamp(48px, 18vw, 120px); max-width:48%; }
+}
+</style>
 </head>
 <body>
 <a class="sr-only" href="#main">Skip to content</a>
@@ -181,7 +206,7 @@
 <section class="hero" id="home">
 <div class="wrap hero-grid">
 <div>
-<div class="logo-row" style="display:flex;justify-content:center;align-items:center;gap:60px;margin-bottom:30px;flex-wrap:wrap;"><img alt="Donnelly Centre Logo" src="assets/images/donnelly-logo.png" style="max-height:300px;width:auto;"/><img alt="University of Toronto Logo" src="assets/images/uoft-logo.png" style="max-height:300px;width:auto;"/></div><h1>Decoding signaling to enable <span style="background:linear-gradient(135deg,var(--brand),var(--brand-2));-webkit-background-clip:text;background-clip:text;color:transparent">regeneration</span>.</h1>
+<div class="logo-row"><img alt="Donnelly Centre Logo" src="assets/images/donnelly-logo.png"/><img alt="University of Toronto Logo" src="assets/images/uoft-logo.png"/></div><h1>Decoding signaling to enable <span style="background:linear-gradient(135deg,var(--brand),var(--brand-2));-webkit-background-clip:text;background-clip:text;color:transparent">regeneration</span>.</h1>
 <p class="lead">We investigate how Wnt/Frizzled and other receptor systems orchestrate tissue renewal and disease. Our work blends chemical biology, protein engineering, and functional genomics to build therapies.</p>
 <div class="cta-row">
 <a class="btn fill" href="research.html">Explore our research</a>
