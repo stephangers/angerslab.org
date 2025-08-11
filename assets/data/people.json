@@ -1,14 +1,16 @@
 [
   {
-    "name": "Stéphane Angers, PhD",
-    "role": "Professor & Principal Investigator",
-    "group": "faculty",
-    "photo": "assets/images/people/stephane-angers.jpg",
-    "initials": "SA",
-    "linkedin": "https://www.linkedin.com/in/...",
-    "scholar": "https://scholar.google.com/citations?user=...",
-    "orcid": "https://orcid.org/0000-0000-0000-0000",
-    "tags": ["Wnt/Frizzled", "Protein engineering", "Genomics"]
+   "name": "Stephane Angers, Ph.D",
+    "role": "Principal Investigator",
+    "photo": "assets/people/stephane-angers.jpg",
+    "group": "Faculty",
+    "raised": "L'Anciennce-Lorette, Quebec, Canada",
+    "education": "PhD in Biochemistry, McGill University",
+    "interests": "Wnt signaling, stem cell biology",
+    "pastimes": "Hockey, golf, wine",
+    "linkedin": "https://linkedin.com/in/janedoe",
+    "scholar": "https://scholar.google.com/citations?user=XXXX",
+    "orcid": "https://orcid.org/0000-0000-0000-0000"
   },
   {
     "name": "Jane Doe",
