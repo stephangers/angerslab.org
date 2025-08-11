@@ -5,7 +5,7 @@
     "photo": "assets/images/people/stephane-angers.jpg",
     "group": "faculty",
     "raised": "L'Ancienne-Lorette, Quebec, Canada \ud83c\udde8\ud83c\udde6",
-    "education": "B.Sc. Biochemistry (McGill University), Ph.D Biochemistry (Université de Montréal)",
+    "education": "B.Sc. Biochemistry (McGill University), Ph.D Biochemistry (Universit\u00e9 de Montr\u00e9al)",
     "interests": "Wnt signaling, stem cell biology",
     "pastimes": "Hockey, golf, wine",
     "linkedin": "https://linkedin.com/in/janedoe",
@@ -158,110 +158,134 @@
   {
     "group": "alumni",
     "name": "Siobhan O'Brien",
-    "years": "2018–2022",
+    "years": "2018\u20132022",
     "role": "Ph.D. Student",
     "present": "Post-Doctoral Fellow, Alice Berger lab, Fred Hutch",
     "photo": "",
-    "initials": "SO"
+    "initials": "SO",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Javier Koh",
-    "years": "2020–2021",
+    "years": "2020\u20132021",
     "role": "Post-Doctoral Fellow",
     "present": "Research Fellow, National University of Singapore",
     "photo": "",
-    "initials": "JK"
+    "initials": "JK",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Mouloud Ahmadi",
-    "years": "2016–2020",
+    "years": "2016\u20132020",
     "role": "Post-Doctoral Fellow",
     "present": "Development Scientist, CCRM (Cell & Gene Therapy), Toronto",
     "photo": "",
-    "initials": "MA"
+    "initials": "MA",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Meng Zheng",
-    "years": "2016–2019",
+    "years": "2016\u20132019",
     "role": "M.Sc. Student",
     "present": "Consultant, Trindent Consulting",
     "photo": "",
-    "initials": "MZ"
+    "initials": "MZ",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Elli Kubarakos",
-    "years": "2016–2019",
+    "years": "2016\u20132019",
     "role": "M.Sc. Student",
     "present": "Junior Scientist, BlueRock Therapeutics (Toronto)",
     "photo": "",
-    "initials": "EK"
+    "initials": "EK",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Zachary Steinhart",
-    "years": "2012–2019",
+    "years": "2012\u20132019",
     "role": "Ph.D. Student",
     "present": "Post-Doctoral Fellow, Alex Marson Lab, UCSF",
     "photo": "",
-    "initials": "ZS"
+    "initials": "ZS",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Monika Mis",
-    "years": "2012–2019",
+    "years": "2012\u20132019",
     "role": "Ph.D. Student",
     "present": "Scientist, Genentech (San Francisco)",
     "photo": "",
-    "initials": "MM"
+    "initials": "MM",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Nishani Rajakulendran",
-    "years": "2012–2019",
+    "years": "2012\u20132019",
     "role": "Ph.D. Student",
     "present": "R&D Associate, Edesa Biotech (Toronto)",
     "photo": "",
-    "initials": "NR"
+    "initials": "NR",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Keith Mascall",
-    "years": "2015–2017",
+    "years": "2015\u20132017",
     "role": "Post-Doctoral Fellow",
     "present": "QA Complaint Manager, Sandoz (Austria)",
     "photo": "",
-    "initials": "KM"
+    "initials": "KM",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Catherine Chiu",
-    "years": "2011–2017",
+    "years": "2011\u20132017",
     "role": "Ph.D. Student",
     "present": "Medical Specialist, Amgen",
     "photo": "",
-    "initials": "CC"
+    "initials": "CC",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Celine Lacroix",
-    "years": "2007–2016",
+    "years": "2007\u20132016",
     "role": "Ph.D. Student",
     "present": "",
     "photo": "",
-    "initials": "CL"
+    "initials": "CL",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Yulu Cherry Liu",
-    "years": "2009–2015",
+    "years": "2009\u20132015",
     "role": "Ph.D. Student",
     "present": "Assistant Professor, Department of Biology, Hood College (Baltimore)",
     "photo": "",
-    "initials": "YL"
+    "initials": "YL",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
@@ -270,34 +294,42 @@
     "role": "Undergraduate research project",
     "present": "David Liu lab, Harvard",
     "photo": "",
-    "initials": "MM"
+    "initials": "MM",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Melanie Robitaille",
-    "years": "2008–2014",
+    "years": "2008\u20132014",
     "role": "Post-Doctoral Fellow",
     "present": "Research Technician, University of Queensland (Australia)",
     "photo": "",
-    "initials": "MR"
+    "initials": "MR",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Josiah Obiero",
-    "years": "2012–2013",
+    "years": "2012\u20132013",
     "role": "Post-Doctoral Fellow",
     "present": "",
     "photo": "",
-    "initials": "JO"
+    "initials": "JO",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Mukhtar Ahmed",
-    "years": "2007–2013",
+    "years": "2007\u20132013",
     "role": "Ph.D. Student",
     "present": "Post-Doctoral Fellow, Ian Macara Lab, Vanderbilt University",
     "photo": "",
-    "initials": "MA"
+    "initials": "MA",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
@@ -306,34 +338,42 @@
     "role": "Summer Student (Pharmaceutical Sciences)",
     "present": "",
     "photo": "",
-    "initials": "CL"
+    "initials": "CL",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Dr. Avais Daulat",
-    "years": "2007–2012",
+    "years": "2007\u20132012",
     "role": "Post-Doctoral Fellow",
-    "present": "Fellow, Centre de Recherche en Cancérologie de Marseille",
+    "present": "Fellow, Centre de Recherche en Canc\u00e9rologie de Marseille",
     "photo": "",
-    "initials": "AD"
+    "initials": "AD",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Andrew Chang",
-    "years": "2008–2010",
+    "years": "2008\u20132010",
     "role": "Research Technician",
     "present": "Research Technician, BC Cancer Agency",
     "photo": "",
-    "initials": "AC"
+    "initials": "AC",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Elodie Gras Lavigne",
     "years": "Summer 2010",
-    "role": "Summer Student (Polytech Clermont-Ferrand, Aubière Cedex, France)",
+    "role": "Summer Student (Polytech Clermont-Ferrand, Aubi\u00e8re Cedex, France)",
     "present": "",
     "photo": "",
-    "initials": "EGL"
+    "initials": "EGL",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
@@ -342,25 +382,31 @@
     "role": "Summer Student (OGI summer research fellow), University of Western Ontario",
     "present": "",
     "photo": "",
-    "initials": "ZM"
+    "initials": "ZM",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Tony Lui",
-    "years": "2007–2010",
+    "years": "2007\u20132010",
     "role": "M.Sc. Student",
     "present": "Medical School student, Australia",
     "photo": "",
-    "initials": "TL"
+    "initials": "TL",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
     "name": "Natalie Lavine",
-    "years": "2006–2008",
+    "years": "2006\u20132008",
     "role": "Research Technician / Lab Administrator",
     "present": "John Macdonald lab, Robarts Institute (London, Ontario)",
     "photo": "",
-    "initials": "NL"
+    "initials": "NL",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
@@ -369,7 +415,9 @@
     "role": "Summer Student",
     "present": "",
     "photo": "",
-    "initials": "AM"
+    "initials": "AM",
+    "linkedin": "",
+    "linkedin_photo": ""
   },
   {
     "group": "alumni",
@@ -378,6 +426,8 @@
     "role": "Summer Student",
     "present": "Graduate student, Jerry Pelletier lab @ McGill University",
     "photo": "",
-    "initials": "TL"
+    "initials": "TL",
+    "linkedin": "",
+    "linkedin_photo": ""
   }
 ]
