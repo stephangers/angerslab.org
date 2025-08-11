@@ -90,6 +90,19 @@ header{
     border-radius: 12px;
     box-shadow: var(--shadow);
 }
+
+/* Make headshots even bigger on people page */
+.people-page img {
+    max-width: 480px; /* much larger */
+    height: auto;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+@media (max-width: 768px) {
+    .people-page img {
+        max-width: 90%; /* adapt for smaller screens */
+    }
+}
 </style>
 </head>
 <body class="people-page">
