@@ -262,13 +262,14 @@ header{
 <script>
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    const DATA_URL = 'assets/data/people.json';
+    const DATA_URL = 'data/people.json';
     const fallback = [
-      { name:'Stéphane Angers, PhD', role:'Professor & Principal Investigator', group:'faculty', initials:'SA', photo:'assets/images/people/stephane-angers.jpg', linkedin:'#', scholar:'#', orcid:'#', tags:['Wnt/Frizzled','Protein engineering','Genomics'] },
-      { name:'Postdoctoral Fellow', role:'Recruiting now', group:'postdoc', initials:'PD', photo:'', linkedin:'#', tags:['Signalosomes','CRISPR'] },
-      { name:'Graduate Student', role:'Molecular Genetics', group:'grad', initials:'GS', photo:'', linkedin:'#', tags:['LRP6','Proteomics'] },
-      { name:'Research Associate', role:'Protein expression & screening', group:'staff', initials:'RA', photo:'', linkedin:'#', tags:['Antibodies','Purification'] },
-      { name:'Alumni Name', role:'Now at: Company/University', group:'alumni', initials:'AL', photo:'', linkedin:'#', tags:['2022'] }
+  // NOTE: Fallback only shows if data/people.json is missing; includes details fields
+      { name:'Stéphane Angers, PhD', role:'Professor & Principal Investigator', group:'faculty', raised:'', education:'', interests:'', pastimes:'', initials:'SA', photo:'assets/images/people/stephane-angers.jpg', linkedin:'#', scholar:'#', orcid:'#', tags:['Wnt/Frizzled','Protein engineering','Genomics'] },
+      { name:'Postdoctoral Fellow', role:'Recruiting now', group:'postdoc', raised:'', education:'', interests:'', pastimes:'', initials:'PD', photo:'', linkedin:'#', tags:['Signalosomes','CRISPR'] },
+      { name:'Graduate Student', role:'Molecular Genetics', group:'grad', raised:'', education:'', interests:'', pastimes:'', initials:'GS', photo:'', linkedin:'#', tags:['LRP6','Proteomics'] },
+      { name:'Research Associate', role:'Protein expression & screening', group:'staff', raised:'', education:'', pastimes:'', initials:'RA', photo:'', linkedin:'#', tags:['Antibodies','Purification'] },
+      { name:'Alumni Name', role:'Now at: Company/University', group:'alumni', raised:'', education:'', pastimes:'', initials:'AL', photo:'', linkedin:'#', tags:['2022'] }
     ];
 
     const icons = {
@@ -333,7 +334,7 @@ const links = document.createElement('div');
       grid.innerHTML='';
       let rows = state.people.filter(p=>{
         if(state.group !== 'all' && p.group !== state.group) return false;
-        if(state.q){ const q = state.q.toLowerCase(); const inTags = (p.tags||[]).join(' ').toLowerCase().includes(q); if(!(p.name?.toLowerCase().includes(q) || inTags)) return false; }
+        if(state.q){ const q = state.q.toLowerCase(); const hay = [p.name,p.role,p.raised,p.education,p.interests,p.pastimes].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
         return true;
       });
       // keep a pleasant order: faculty, postdoc, grad, staff, alumni
@@ -357,7 +358,7 @@ const links = document.createElement('div');
         if(!res.ok) throw new Error('no people.json');
         const data = await res.json();
         if(!Array.isArray(data)) throw new Error('people.json must be an array');
-        state.people = data;
+        state.people = data.map(p => ({...p, group: (p.group||'').toLowerCase()}));
       } catch(err){ console.warn('[people] using fallback:', err.message); state.people = fallback; }
       render();
     })();
