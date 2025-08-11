@@ -13,14 +13,14 @@
     "orcid": "https://orcid.org/0000-0000-0000-0000"
   },
   {
-    "name": "Jane Doe",
-    "role": "Postdoctoral Fellow",
-    "photo": "assets/people/jane.jpg",
-    "group": "postdoc",
-    "raised": "Montreal, Canada",
-    "education": "PhD in Molecular Genetics, University of Toronto",
-    "interests": "Wnt signaling, stem cell biology",
-    "pastimes": "Hockey, hiking, photography",
+    "name": "Graham Macleod, Ph.D",
+    "role": "Senior Research Associate",
+    "photo": "assets/people/graham-macleod.jpg",
+    "group": "staff",
+    "raised": "New Glasgow, Nova Scotia",
+    "education": "B.Sc. (University of Toronto at Mississauga), Ph.D (University of Toronto, Department of Cell & Systems Biology).",
+    "interests": "Glioblastoma, Genome-wide CRISPR/Cas9 screening, Proteomics, Protein Phosphatases, DNA Damage",
+    "pastimes": "Hiking, Travel, Hockey, Baseball",
     "linkedin": "https://linkedin.com/in/janedoe",
     "scholar": "https://scholar.google.com/citations?user=XXXX",
     "orcid": "https://orcid.org/0000-0000-0000-0000"
