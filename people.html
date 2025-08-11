@@ -285,10 +285,11 @@ header{
       el.className = 'card';
       el.dataset.group = p.group || '';
 
-      const img = document.createElement(p.photo ? 'img' : 'div');
-      if(p.photo){
+      let useImg = !!(p.photo && p.photo.trim()) || !!(p.linkedin_photo && p.linkedin_photo.trim());
+      const img = document.createElement(useImg ? 'img' : 'div');
+      if(useImg){
         img.className = 'photo';
-        img.src = p.photo;
+        img.src = (p.photo && p.photo.trim()) ? p.photo.trim() : p.linkedin_photo.trim();
         img.alt = 'Photo of ' + p.name;
         img.onerror = () => { img.replaceWith(makeFallback(p.initials)); };
       } else {
@@ -305,17 +306,18 @@ header{
   const details = document.createElement('div');
   details.className = 'details';
   details.innerHTML = ((p.group||'').toLowerCase()==='alumni')
-    ? `
-        <p><b>Years:</b> ${p.years || ''}</p>
-        <p><b>Role:</b> ${p.role || ''}</p>
-        <p><b>Present position:</b> ${p.present || ''}</p>
-      `
-    : `
-        <p><b>Raised:</b> ${p.raised || ''}</p>
-        <p><b>Education:</b> ${p.education || ''}</p>
-        <p><b>Scientific Interests:</b> ${p.interests || ''}</p>
-        <p><b>Pastimes:</b> ${p.pastimes || ''}</p>
-      `;
+  ? `
+      <p><b>Years:</b> ${p.years || ''}</p>
+      <p><b>Role:</b> ${p.role || ''}</p>
+      <p><b>Present position:</b> ${p.present || ''}</p>
+      ${p.linkedin ? `<p><b>LinkedIn:</b> <a href="${p.linkedin}" target="_blank" rel="noopener">View profile</a></p>` : ''}
+    `
+  : `
+      <p><b>Raised:</b> ${p.raised || ''}</p>
+      <p><b>Education:</b> ${p.education || ''}</p>
+      <p><b>Scientific Interests:</b> ${p.interests || ''}</p>
+      <p><b>Pastimes:</b> ${p.pastimes || ''}</p>
+    `;
   box.appendChild(details);
 
 const links = document.createElement('div');
