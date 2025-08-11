@@ -9,5 +9,33 @@
     "scholar": "https://scholar.google.com/citations?user=...",
     "orcid": "https://orcid.org/0000-0000-0000-0000",
     "tags": ["Wnt/Frizzled", "Protein engineering", "Genomics"]
+  },
+  {
+    "name": "Jane Doe",
+    "role": "Postdoctoral Fellow",
+    "photo": "assets/people/jane.jpg",
+    "group": "postdoc",
+    "raised": "Montreal, Canada",
+    "education": "PhD in Molecular Genetics, University of Toronto",
+    "interests": "Wnt signaling, stem cell biology",
+    "pastimes": "Hockey, hiking, photography",
+    "linkedin": "https://linkedin.com/in/janedoe",
+    "scholar": "https://scholar.google.com/citations?user=XXXX",
+    "orcid": "https://orcid.org/0000-0000-0000-0000"
+  },
+  {
+    "name": "John Smith",
+    "role": "Graduate Student",
+    "photo": "assets/people/john.jpg",
+    "group": "grad",
+    "raised": "Toronto, Canada",
+    "education": "MSc Candidate, University of Toronto",
+    "interests": "Protein engineering, regenerative medicine",
+    "pastimes": "Piano, rock climbing",
+    "linkedin": "",
+    "scholar": "",
+    "orcid": ""
   }
+]
+
 ]
