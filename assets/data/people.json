@@ -26,19 +26,6 @@
     "orcid": "https://orcid.org/0000-0000-0000-0000"
   },
   {
-    "name": "John Smith",
-    "role": "Graduate Student",
-    "photo": "assets/people/john.jpg",
-    "group": "grad",
-    "raised": "Toronto, Canada",
-    "education": "MSc Candidate, University of Toronto",
-    "interests": "Protein engineering, regenerative medicine",
-    "pastimes": "Piano, rock climbing",
-    "linkedin": "",
-    "scholar": "",
-    "orcid": ""
-  },
-  {
     "name": "Sichun Lin",
     "role": "Research Technician",
     "photo": "assets/images/people/sichun-lin.jpg",
@@ -119,7 +106,7 @@
   {
     "name": "Sarah Moldaver",
     "role": "Graduate Student",
-    "photo": "assets/images/people/graham-macleod.jpg",
+    "photo": "assets/images/people/Sarah-Moldaver.jpg",
     "group": "grad",
     "raised": "Toronto, Ontario \ud83c\udde8\ud83c\udde6",
     "education": "B.Sc. (University of Toronto)",
@@ -132,7 +119,7 @@
   {
     "name": "Althea Xu",
     "role": "Graduate Student",
-    "photo": "assets/images/people/graham-macleod.jpg",
+    "photo": "assets/images/people/Althea-Xu.jpg",
     "group": "grad",
     "raised": "Jiaxing, Zhejiang, China \ud83c\udde8\ud83c\uddf3",
     "education": "B.Sc. (McGill University)",
@@ -145,7 +132,7 @@
   {
     "name": "Frank Oteng",
     "role": "Graduate Student",
-    "photo": "assets/images/people/graham-macleod.jpg",
+    "photo": "assets/images/people/Frank-Oteng.jpg",
     "group": "grad",
     "raised": "Accra, Ghana \ud83c\uddec\ud83c\udded",
     "education": "B.Sc (Kwame Nkrumah University of Science and Technology)",
@@ -158,7 +145,7 @@
   {
     "name": "Dr. Lucie Wolf",
     "role": "Post-doctoral Fellow",
-    "photo": "assets/images/people/graham-macleod.jpg",
+    "photo": "assets/images/people/Lucie-Wolfe.jpg",
     "group": "postdoc",
     "raised": "Nuremberg, Germany \ud83c\udde9\ud83c\uddea",
     "education": "B.Sc. & M.Sc. Molecular Medicine (University Erlangen, Germany), Dr. rer. nat. (Heidelberg University & German Cancer Research Center, Germany)",
