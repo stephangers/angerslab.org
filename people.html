@@ -123,6 +123,67 @@ header{
         max-width: 70%;
     }
 }
+
+/* --- Hockey card theme for People page --- */
+.people-page .grid{grid-template-columns: repeat(12, 1fr); gap: clamp(14px,2vw,22px);}
+.people-page .card{
+  grid-column: span 4;
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  background: radial-gradient(120% 120% at 80% -20%, color-mix(in oklab, var(--brand) 12%, transparent), transparent 50%), 
+              radial-gradient(120% 120% at -10% 0%, color-mix(in oklab, var(--brand-2) 10%, transparent), transparent 60%),
+              var(--panel);
+  border-radius: 22px;
+  padding: 22px 18px 18px;
+  border: 2px solid color-mix(in oklab, var(--text) 12%, transparent);
+  box-shadow: 0 8px 30px rgba(0,0,0,.35);
+  overflow: hidden;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.people-page .card::before{
+  content:''; position:absolute; inset:-2px; border-radius:24px;
+  background: conic-gradient(from 180deg, rgba(255,255,255,.12), transparent 30%, rgba(255,255,255,.06) 60%, transparent 90%);
+  mask: linear-gradient(#000 0 0) exclude, linear-gradient(#000 0 0) content-box;
+  padding:2px; pointer-events:none;
+}
+.people-page .card:hover{ transform: translateY(-4px) rotate3d(1,0,0,0.5deg); box-shadow: 0 14px 40px rgba(0,0,0,.45); }
+
+.people-page .photo, .people-page .fallback{
+  width: clamp(180px, 28vw, 260px);
+  height: clamp(180px, 28vw, 260px);
+  border-radius: 50%;
+  object-fit: cover;
+  border: 6px solid #fff;
+  outline: 2px solid color-mix(in oklab, var(--brand) 40%, var(--brand-2));
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  display:grid; place-items:center; color:#002016; font-weight:900; font-size: 48px;
+}
+
+.people-page .card h3{
+  margin: 14px 0 6px;
+  font-size: clamp(20px, 2.2vw, 24px);
+  text-transform: uppercase; letter-spacing: .8px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.people-page .card h3::after{
+  content:''; display:block; height: 8px; width: 80%;
+  margin: 8px auto 0; border-radius: 999px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  opacity: .5;
+}
+
+.people-page .role{ color: var(--muted); margin-top: 2px; }
+
+.people-page .tags{ justify-content:center; }
+.people-page .tag{
+  background: color-mix(in oklab, var(--text) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--text) 12%, transparent);
+}
+
+@media (max-width: 980px){ .people-page .card{ grid-column: span 6; } }
+@media (max-width: 640px){ .people-page .card{ grid-column: span 12; } }
 </style>
 </head>
 <body class="people-page">
