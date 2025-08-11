@@ -3,7 +3,7 @@
     "name": "Stephane Angers, Ph.D",
     "role": "Principal Investigator",
     "photo": "assets/people/stephane-angers.jpg",
-    "group": "Faculty",
+    "group": "faculty",
     "raised": "L'Anciennce-Lorette, Quebec, Canada",
     "education": "PhD in Biochemistry, McGill University",
     "interests": "Wnt signaling, stem cell biology",
@@ -38,6 +38,4 @@
     "scholar": "",
     "orcid": ""
   }
-]
-
 ]
