@@ -310,7 +310,7 @@ header{
       <p><b>Years:</b> ${p.years || ''}</p>
       <p><b>Role:</b> ${p.role || ''}</p>
       <p><b>Present position:</b> ${p.present || ''}</p>
-      ${p.linkedin ? `<p><b>LinkedIn:</b> <a href="${p.linkedin}" target="_blank" rel="noopener">View profile</a></p>` : ''}
+      ${p.linkedin ? `<p><a href="${p.linkedin}" target="_blank" rel="noopener">${icons.linkedin} View profile</a></p>` : ''}
     `
   : `
       <p><b>Raised:</b> ${p.raised || ''}</p>
@@ -341,7 +341,7 @@ const links = document.createElement('div');
       const grid = document.getElementById('people-grid');
       grid.innerHTML='';
       let rows = state.people.filter(p=>{
-        if(state.group !== 'all' && p.group !== state.group) return false;
+        if((state.group === 'all' && p.group === 'alumni') || (state.group !== 'all' && p.group !== state.group)) return false;
         if(state.q){ const q = state.q.toLowerCase(); const hay = [p.name,p.role,p.raised,p.education,p.interests,p.pastimes].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
         return true;
       });
