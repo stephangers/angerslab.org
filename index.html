@@ -131,19 +131,26 @@
   align-items: center;
   background: var(--panel);
 }
-
+.carousel .slide img {
+  max-width: 100%;
+  height: auto;
+  max-height: 75vh;
+  object-fit: scale-down;
+  object-position: center;
+  display: block;
+}
 .carousel button.nav {
   position: absolute; top: 50%; transform: translateY(-50%);
   background: color-mix(in oklab, var(--bg) 40%, transparent);
   backdrop-filter: blur(6px) saturate(140%);
   color: var(--text); border: 1px solid color-mix(in oklab, var(--text) 14%, transparent);
-  width: 40px;  border-radius: 999px; display: grid; place-items: center; font-size: 20px; cursor: pointer;
+  width: 40px; height: 40px; border-radius: 999px; display: grid; place-items: center; font-size: 20px; cursor: pointer;
 }
 .carousel button.nav:hover { background: color-mix(in oklab, var(--bg) 65%, transparent); }
 .carousel button.prev { left: 10px; } .carousel button.next { right: 10px; }
 .carousel .dots { display: flex; gap: 8px; justify-content: center; padding: 10px 0 0; }
 .carousel .dot {
-  width: 8px;  border-radius: 999px; background: color-mix(in oklab, var(--text) 18%, transparent);
+  width: 8px; height: 8px; border-radius: 999px; background: color-mix(in oklab, var(--text) 18%, transparent);
   border: 1px solid color-mix(in oklab, var(--text) 12%, transparent); cursor: pointer;
 }
 .carousel .dot[aria-selected="true"] { background: linear-gradient(135deg, var(--brand), var(--brand-2)); border: none; }
@@ -187,57 +194,14 @@
   .logo-row img{ height:clamp(48px, 18vw, 120px); max-width:48%; }
 }
 </style>
-<style>
-
-
-
-</style>
-<style>
-
-/* === Normalized carousel viewport & centered images (no cropping) === */
-.carousel .viewport {
-  overflow: hidden;
-  border-radius: 16px;
-  box-shadow: var(--shadow);
-  border: 1px solid color-mix(in oklab, var(--text) 10%, transparent);
-  height: 70vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.carousel .slides {
-  display: flex;
-  transition: transform .6s cubic-bezier(.22,.61,.36,1);
-  align-items: center;
-}
-
-.carousel .slide {
-  min-width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--panel);
-}
-
-.carousel .slide img {
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  display: block;
-}
-
-</style>
-<style>
-
-/* === Ensure each slide is exactly viewport width to avoid overlap === */
-.carousel .slides { align-items: stretch; }
-.carousel .slide { flex: 0 0 100%; }
-
-</style>
-</head>
+<link href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/css/splide.min.css" rel="stylesheet"/><style>
+/* Splide image sizing: keep aspect ratio, no cropping */
+.splide__slide img { width: 100%; height: auto; display: block; object-fit: contain; }
+/* Optional: give some breathing room */
+.splide { margin: 0 auto; }
+/* If your page has rounded panels, keep it consistent */
+.splide__track { border-radius: 16px; overflow: hidden; }
+</style></head>
 <body>
 <a class="sr-only" href="#main">Skip to content</a>
 <header>
@@ -295,37 +259,7 @@
 </div>
 </section>
 <section aria-label="Research visuals" class="wrap">
-<div class="carousel" id="home-carousel">
-<div aria-live="polite" class="viewport">
-<div class="slides">
-<figure class="slide">
-<img alt="Wnt/β-catenin pathway schematic" src="assets/carousel/wnt-fig-1.png"/>
-</figure>
-<figure class="slide">
-<img alt="Angers lab picnic 2024" src="assets/carousel/labpicnic2024.jpeg"/>
-</figure>
-<figure class="slide">
-<img alt="Rony differential kinetics" src="assets/carousel/fx1.jpg"/>
-</figure>
-<figure class="slide">
-<img alt="Andy regulation of FZD5 surface expression" src="assets/carousel/fig1.png"/>
-</figure>
-<figure class="slide">
-<img alt="Zach FZD5 antibody" src="assets/carousel/fig2.png"/>
-</figure>
-<figure class="slide">
-<img alt="Fatemeh GBM screen" src="assets/carousel/fig3.png"/>
-</figure>
-<!-- Optional extra slide -->
-<!-- <figure class="slide">
-          <img src="assets/images/organoids.jpg" alt="Stem cell organoids under the microscope" />
-        </figure> -->
-</div>
-</div>
-<button aria-label="Previous slide" class="nav prev">‹</button>
-<button aria-label="Next slide" class="nav next">›</button>
-<div aria-label="Carousel pagination" class="dots" role="tablist"></div>
-</div>
+<section aria-label="Lab figures carousel" class="splide"><div class="splide__track"><ul class="splide__list"><li class="splide__slide"><img alt="Wnt/β-catenin pathway schematic" src="assets/carousel/wnt-fig-1.png"/></li><li class="splide__slide"><img alt="Angers lab picnic 2024" src="assets/carousel/labpicnic2024.jpeg"/></li><li class="splide__slide"><img alt="Rony differential kinetics" src="assets/carousel/fx1.jpg"/></li><li class="splide__slide"><img alt="Andy regulation of FZD5 surface expression" src="assets/carousel/fig1.png"/></li><li class="splide__slide"><img alt="Zach FZD5 antibody" src="assets/carousel/fig2.png"/></li><li class="splide__slide"><img alt="Fatemeh GBM screen" src="assets/carousel/fig3.png"/></li></ul></div></section>
 </section>
 <section id="about">
 <div class="wrap">
@@ -557,5 +491,20 @@
 })();
 
   </script>
-</body>
+<script defer="True" src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/js/splide.min.js"></script><script>
+document.addEventListener('DOMContentLoaded', function () {
+  var el = document.querySelector('.splide');
+  if (el) {
+    new Splide(el, {
+      type: 'loop',
+      pagination: true,
+      arrows: true,
+      gap: '1rem',
+      autoHeight: true,
+      focus: 'center',
+      speed: 600
+    }).mount();
+  }
+});
+</script></body>
 </html>
