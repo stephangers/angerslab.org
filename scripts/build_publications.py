@@ -182,6 +182,13 @@ def inject_into_file(target_path: str, inner_html: str):
 {inner_html}
 <!-- PUBLIST:END -->"
     out = re.sub(f"{start}.*?{end}", replacement, html, flags=re.S)
+    
+    # Also refresh the “Updated automatically…” pill timestamp if present
+    try:
+        now = dt.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
+        out = re.sub(r"(Updated automatically from PubMed: )[^<]+", r"\\1" + now, out)
+    except Exception:
+        pass
     p.write_text(out, encoding="utf-8")
 
 
@@ -227,10 +234,6 @@ def main():
     with open(args.output, "w", encoding="utf-8") as f:
         f.write(html)
     print(f"Wrote {args.output} with {sum(len(v) for v in by_year.values())} records.")
-
-
-if __name__ == "__main__":
-    main_v2()
 
 
 def main_v2():
@@ -284,3 +287,6 @@ def main_v2():
         frag = render_fragment(by_year)
         inject_into_file(args.target, frag)
         print(f"Injected {sum(len(v) for v in by_year.values())} records into {args.target}.")
+
+if __name__ == '__main__':
+    main_v2()
