@@ -2,17 +2,19 @@ name: Update Publications (PubMed)
 
 on:
   schedule:
-    - cron: "17 5 * * *"  # every day at 05:17 UTC
+    # Runs every day at 09:10 UTC
+    - cron: "10 9 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  build-and-inject:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -20,16 +22,35 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install requests
-
-      - name: Build publications page
-        run: python scripts/build_publications.py --config scripts/pubmed_config.json --output publications.html
-
-      - name: Commit and push changes
+      - name: Install dependencies (if any)
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add publications.html
-          git commit -m "chore: nightly PubMed sync [skip ci]" || echo "No changes to commit"
-          git push
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Update publications.html from PubMed
+        run: |
+          set -euo pipefail
+          if [ -f scripts/build_publications_patched.py ]; then
+            PY=scripts/build_publications_patched.py
+          else
+            PY=scripts/build_publications.py
+          fi
+
+          if [ ! -f scripts/pubmed_config.json ]; then
+            echo "ERROR: scripts/pubmed_config.json not found."
+            exit 1
+          fi
+
+          if [ ! -f publications.html ]; then
+            echo "ERROR: publications.html not found at repo root."
+            exit 1
+          fi
+
+          python3 "$PY" --config scripts/pubmed_config.json --mode inject --target publications.html
+
+      - name: Commit & push changes (if any)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(pubmed): refresh publications.html from PubMed"
+          file_pattern: "publications.html"
