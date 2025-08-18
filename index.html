@@ -201,6 +201,11 @@
 .splide { margin: 0 auto; }
 /* If your page has rounded panels, keep it consistent */
 .splide__track { border-radius: 16px; overflow: hidden; }
+</style><style>
+.splide__track { border-radius: 16px; overflow: hidden; }
+.splide__slide { display:flex; align-items:center; justify-content:center; background:white; }
+.splide__slide img { width: 100%; height: auto; display:block; object-fit: contain; }
+#status { color:#6b7280; font-size:.9rem; }
 </style></head>
 <body>
 <a class="sr-only" href="#main">Skip to content</a>
@@ -259,7 +264,7 @@
 </div>
 </section>
 <section aria-label="Research visuals" class="wrap">
-<section aria-label="Lab figures carousel" class="splide"><div class="splide__track"><ul class="splide__list"><li class="splide__slide"><img alt="Wnt/β-catenin pathway schematic" src="assets/carousel/wnt-fig-1.png"/></li><li class="splide__slide"><img alt="Angers lab picnic 2024" src="assets/carousel/labpicnic2024.jpeg"/></li><li class="splide__slide"><img alt="Rony differential kinetics" src="assets/carousel/fx1.jpg"/></li><li class="splide__slide"><img alt="Andy regulation of FZD5 surface expression" src="assets/carousel/fig1.png"/></li><li class="splide__slide"><img alt="Zach FZD5 antibody" src="assets/carousel/fig2.png"/></li><li class="splide__slide"><img alt="Fatemeh GBM screen" src="assets/carousel/fig3.png"/></li></ul></div></section>
+<section aria-label="Lab figures carousel" class="splide" id="auto-splide"><div class="splide__track"><ul class="splide__list" id="slides"></ul></div></section>
 </section>
 <section id="about">
 <div class="wrap">
@@ -504,6 +509,50 @@ document.addEventListener('DOMContentLoaded', function () {
       focus: 'center',
       speed: 600
     }).mount();
+  }
+});
+</script><p id="status"></p><script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const status = document.getElementById('status');
+  const listEl = document.getElementById('slides');
+  const manifestUrl = 'assets/carousel/manifest.json';
+
+  try {
+    const res = await fetch(manifestUrl, { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+    const data = await res.json();
+    const images = Array.isArray(data.images) ? data.images : [];
+
+    if (images.length === 0) {
+      status.textContent = 'No images found in assets/carousel/.';
+    } else {
+      for (const rel of images) {
+        const li = document.createElement('li');
+        li.className = 'splide__slide';
+        const img = document.createElement('img');
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.src = rel;
+        img.alt = '';
+        li.appendChild(img);
+        listEl.appendChild(li);
+      }
+
+      new Splide('#auto-splide', {
+        type: 'loop',
+        pagination: true,
+        arrows: true,
+        gap: '1rem',
+        autoHeight: true,
+        focus: 'center',
+        speed: 600
+      }).mount();
+
+      status.textContent = 'Loaded ' + images.length + ' image' + (images.length > 1 ? 's' : '');
+    }
+  } catch (err) {
+    status.style.color = '#b91c1c';
+    status.textContent = 'Failed to load manifest: ' + err.message + ' — ensure assets/carousel/manifest.json is published.';
   }
 });
 </script></body>
