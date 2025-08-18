@@ -1,0 +1,36 @@
+name: Build Carousel Manifest
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - "assets/carousel/**"
+      - "scripts/build_carousel_manifest.py"
+      - ".github/workflows/build-carousel-manifest.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build manifest
+        run: python scripts/build_carousel_manifest.py
+
+      - name: Commit & push manifest
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update carousel manifest"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "41898282+github-actions[bot]@users.noreply.github.com"
+          file_pattern: "assets/carousel/manifest.json"
