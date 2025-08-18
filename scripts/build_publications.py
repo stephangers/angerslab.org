@@ -9,6 +9,8 @@ Usage:
   python scripts/build_publications.py --config scripts/pubmed_config.json --output publications.html
 """
 import argparse
+import re
+from pathlib import Path
 import datetime as dt
 import json
 import sys
@@ -135,10 +137,60 @@ def render_html(records_by_year, page_title="Publications"):
     return "\n".join(parts)
 
 
+# --- Added by patch: fragment rendering + injection ---
+def render_fragment(records_by_year):
+    """Return only the inner markup your page expects: .year-block sections with <article class='pub'> entries."""
+    parts = []
+    for year in sorted(records_by_year.keys(), reverse=True):
+        parts.append(f'<section class="year-block" data-year="{year}">')
+        parts.append('  <div class="year-head">')
+        parts.append(f'    <h3>{year}</h3>')
+        parts.append(f'    <small><span class="counter">{len(records_by_year[year])}</span> publications</small>')
+        parts.append('  </div>')
+        parts.append('  <div class="pubs">')
+        for rec in records_by_year[year]:
+            authors = rec.get("authors","")
+            title = rec.get("title","")
+            jrnl  = rec.get("journal","")
+            pmid  = rec.get("pmid","")
+            doi   = rec.get("doi","")
+            search_blob = " ".join([authors, title, jrnl]).lower()
+            links = [f"<a href='https://pubmed.ncbi.nlm.nih.gov/{pmid}/'>PMID:{pmid}</a>"] if pmid else []
+            if doi:
+                links.append(f"<a href='https://doi.org/{doi}'>DOI</a>")
+            parts.append(
+                "    <article class='pub' data-search='" + search_blob.replace("'","&#39;") + "'>" +
+                f"<span class='meta'>{authors}</span>. " +
+                f"<strong>{title}</strong>. " +
+                f"<span class='jrnl'>{jrnl}</span>. " +
+                (" | ".join(links)) +
+                "</article>"
+            )
+        parts.append('  </div>')
+        parts.append('</section>')
+    return "
+".join(parts)
+
+def inject_into_file(target_path: str, inner_html: str):
+    p = Path(target_path)
+    html = p.read_text(encoding="utf-8")
+    start = r"<!-- PUBLIST:START -->"
+    end   = r"<!-- PUBLIST:END -->"
+    if start not in html or end not in html:
+        raise RuntimeError("Marker comments not found in target HTML. Add them once, then rerun.")
+    replacement = f"<!-- PUBLIST:START -->
+{inner_html}
+<!-- PUBLIST:END -->"
+    out = re.sub(f"{start}.*?{end}", replacement, html, flags=re.S)
+    p.write_text(out, encoding="utf-8")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True, help="Path to pubmed_config.json")
-    ap.add_argument("--output", required=True, help="Output HTML file (publications.html)")
+    ap.add_argument("--output", default="publications.generated.html", help="Output file when using --mode page/fragment")
+    ap.add_argument("--mode", choices=["page","fragment","inject"], default="page", help="page = write standalone HTML; fragment = write only year-blocks; inject = replace markers inside --target")
+    ap.add_argument("--target", default="publications.html", help="When --mode inject, path to the page with PUBLIST markers")
     args = ap.parse_args()
 
     with open(args.config, "r") as f:
@@ -178,4 +230,57 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main_v2()
+
+
+def main_v2():
+    # reuse original parsing but extend with modes
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--config", required=True, help="Path to pubmed_config.json")
+    ap.add_argument("--output", default="publications.generated.html", help="Output file (page/fragment modes)")
+    ap.add_argument("--mode", choices=["page","fragment","inject"], default="page",
+                    help="page = write standalone HTML; fragment = only year-blocks; inject = replace markers in --target")
+    ap.add_argument("--target", default="publications.html", help="When --mode inject, the page to update")
+    args = ap.parse_args()
+
+    with open(args.config, "r") as f:
+        cfg = json.load(f)
+
+    queries = cfg.get("queries", [])
+    retmax = int(cfg.get("retmax", 300))
+    if not queries:
+        print("No 'queries' in config; nothing to do."); return
+
+    all_pmids = []
+    for q in queries:
+        ids = esearch(q, retmax=retmax)
+        all_pmids.extend(ids)
+
+    # dedupe while preserving order
+    seen, deduped = set(), []
+    for p in all_pmids:
+        if p not in seen:
+            seen.add(p); deduped.append(p)
+
+    summaries = esummary(deduped)
+    by_year = defaultdict(list)
+    for pmid in deduped:
+        rec = summaries.get(pmid)
+        if not rec: continue
+        norm = normalize_record(rec)
+        by_year[norm.get("year","In press")].append(norm)
+
+    if args.mode == "page":
+        html = render_html(by_year, page_title=cfg.get("page_title", "Publications"))
+        with open(args.output, "w", encoding="utf-8") as f:
+            f.write(html)
+        print(f"Wrote {args.output} with {sum(len(v) for v in by_year.values())} records.")
+    elif args.mode == "fragment":
+        frag = render_fragment(by_year)
+        with open(args.output, "w", encoding="utf-8") as f:
+            f.write(frag)
+        print(f"Wrote fragment to {args.output}.")
+    else:
+        frag = render_fragment(by_year)
+        inject_into_file(args.target, frag)
+        print(f"Injected {sum(len(v) for v in by_year.values())} records into {args.target}.")
