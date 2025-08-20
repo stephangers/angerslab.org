@@ -78,6 +78,19 @@
     "orcid": ""
   },
   {
+    "name": "Missy Kim",
+    "role": "Graduate Student",
+    "photo": "assets/images/people/Missy-Kim.jpg",
+    "group": "grad",
+    "raised": "Busan, South Korea \ud83c\uddf0\ud83c\uddf7 & Toronto, Canada \ud83c\udde8\ud83c\udde6 ",
+    "education": "B.Sc. (Western University)",
+    "interests": "Cell signal pathways, G-protein-coupled receptors, molecular pharmacology",
+    "pastimes": "Listening to podcasts, travelling, swimming",
+    "linkedin": "",
+    "scholar": "",
+    "orcid": ""
+    },
+  {
     "name": "Qiyu Yang",
     "role": "Graduate Student",
     "photo": "assets/images/people/Qiyu-Yang.jpg",
