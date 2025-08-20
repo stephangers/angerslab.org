@@ -73,10 +73,16 @@
     @media (max-width:820px){ .footer-grid{grid-template-columns:1fr} }
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
 
-   
+    /* Biography + portrait layout */
+    .bio-image-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(12px,2vw,20px);align-items:stretch;margin-top:14px}
+    .bio-col{grid-column:span 8}
+    .portrait-col{grid-column:span 4}
+    @media (max-width:980px){ .bio-col{grid-column:span 12} .portrait-col{grid-column:span 12} }
+    .portrait-card{padding:0;height:100%;overflow:hidden}
+    .portrait-img{display:block;width:100%;height:100%;object-fit:cover}
 </style>
 </head>
-<body>
+<body id="angers-page">
 <a class="sr-only" href="#main">Skip to content</a>
 <header>
   <div class="wrap nav">
@@ -99,6 +105,7 @@
 </header>
 <main class="wrap" id="main">
   <section class="hero tight">
+    <!-- Top header bits -->
     <div class="grid">
       <div class="left">
         <div class="chips">
@@ -114,29 +121,34 @@
             Temerty Faculty of Medicine, University of Toronto
           </b>
         </p>
-        <div class="chips tools">
-          <a class="btn fill" href="assets/docs/Stephane_Angers_CV.pdf">CV (PDF)</a>
-          <a class="btn" href="publications.html">Publications</a>
-          <a class="btn" href="https://pubmed.ncbi.nlm.nih.gov/?term=Angers+S%5BAuthor%5D" rel="noopener" target="_blank">PubMed</a>
-          <a class="btn" href="https://scholar.google.com/citations?user=6Wa4BbYAAAAJ&amp;hl=en" rel="noopener" target="_blank">Google Scholar</a>
-          <a class="btn" href="https://www.linkedin.com/in/stephane-angers-%F0%9F%87%A8%F0%9F%87%A6-75981a6/?originalSubdomain=ca" rel="noopener" target="_blank">LinkedIn</a>
-          <a class="btn" href="https://orcid.org/0000-0001-7241-9044" rel="noopener" target="_blank">ORCID</a>
+      </div>
+    </div>
+
+    <!-- Biography flanked by full-height portrait -->
+    <div class="bio-image-grid">
+      <div class="bio-col">
+        <div class="bio-block" style="border-top:1px solid color-mix(in oklab, var(--text) 15%, transparent); padding-top:12px;">
+          <h2 style="margin:0 0 6px">Biography</h2>
+          <p>Dr. Angers is an expert in the field of signal transduction. He obtained his Ph.D from the Université de Montréal in 2002 under the guidance of <a href="https://www.iric.ca/en/research/principal-investigators/michel-bouvier" rel="noopener" target="_blank">Dr. Michel Bouvier</a>. His thesis work led to the development and application of light energy transfer methodology for the study of protein-protein interaction and signal transduction. From 2002-2006 he was a Howard Hughes Post-Doctoral Fellow at the University of Washington in Seattle under the supervision of <a href="https://www.nasonline.org/directory-entry/randall-t-moon-wxtgm5/" rel="noopener" target="_blank">Dr. Randall T. Moon</a>, where he identified and characterized novel components of the Wnt signalling pathway and a new class of E3 ubiquitin ligases.</p>
+          <p>In October 2006, Dr. Angers established his independent research program in the Department of Pharmaceutical Sciences at the Faculty of Pharmacy and in the Department of Biochemistry at the University of Toronto. He is the recipient of the Canada Research Chair in Functional Architecture of Signal Transduction. His research program is developed to understand the signalling mechanisms underlying the Wnt family of growth factors and their signalling mechanisms in development, adult tissue homeostasis and in human diseases. His pioneer work led to the development of novel antibody molecules blocking and activating the Wnt pathway for the treatment of cancers and regenerative medicine applications. <a href="https://www.embopress.org/doi/full/10.15252/emmm.202113977" rel="noopener" target="_blank">His work led to the development of Restoret (MK-3000)</a>, which came from a program that was licensed to EyeBio (<a href="https://www.merck.com/news/merck-completes-acquisition-of-eyebio/" rel="noopener" target="_blank">acquired by Merck in the summer of 2024</a>). MK-3000, a trispecific tetravalent FZD4:LRP5 agonist, is now in <a href="https://www.merck.com/news/merck-and-eyebio-announce-initiation-of-phase-2b-3-clinical-trial-for-restoret-for-the-treatment-of-diabetic-macular-edema/" rel="noopener" target="_blank">Phase 2b/3 clinical trial</a> for the treatment of Diabetes Macular Edema. He is the scientific founder of AntlerA Therapeutics that was <a href="https://assets.roche.com/f/176343/x/8167d923ad/231024_ir_q3.pdf" rel="noopener" target="_blank">acquired by Roche in the summer of 2024</a>.</p>
+          <p>In September 2021 Dr. Angers was named Director of the Donnelly Centre of Cellular and Biomolecular Research at the University of Toronto, an internationally recognized Research Institute bringing together multidisciplinary teams of scientists.</p>
+          
+          <div class="chips tools" style="margin-top:12px">
+            <a class="btn fill" href="assets/docs/Stephane_Angers_CV.pdf">CV (PDF)</a>
+            <a class="btn" href="publications.html">Publications</a>
+            <a class="btn" href="https://pubmed.ncbi.nlm.nih.gov/?term=Angers+S%5BAuthor%5D" rel="noopener" target="_blank">PubMed</a>
+            <a class="btn" href="https://scholar.google.com/citations?user=6Wa4BbYAAAAJ&amp;hl=en" rel="noopener" target="_blank">Google Scholar</a>
+            <a class="btn" href="https://www.linkedin.com/in/stephane-angers-%F0%9F%87%A8%F0%9F%87%A6-75981a6/?originalSubdomain=ca" rel="noopener" target="_blank">LinkedIn</a>
+            <a class="btn" href="https://orcid.org/0000-0001-7241-9044" rel="noopener" target="_blank">ORCID</a>
+          </div>
         </div>
       </div>
-      <aside class="right">
-        <div class="card" style="text-align:center">
-          <img alt="Portrait of Stéphane Angers" class="avatar" onerror="this.style.display='none'; document.getElementById('initials').style.display='grid';" src="assets/images/people/stephane-angers.jpg"/>
-          <div id="initials" style="display:none;width:128px;height:128px;border-radius:50%;place-items:center;background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#001319;font-weight:900;margin-inline:auto">SA</div>
-          <p class="meta" style="margin-top:10px">Donnelly Centre • University of Toronto</p>
-          <p class="meta">Toronto, Canada</p>
-        </div>
-        <div class="card" style="margin-top:14px">
-          <b>Contact</b>
-          <p class="meta" style="margin-top:8px">Phone: 1-416-946-5398</p>
-          <p class="meta">Email: <a href="mailto:info@angerslab.org">info@angerslab.org</a></p>
-          <p class="meta">160 College Street, Rm 808, Toronto ON M5S 3E1</p>
-          <p class="meta">LinkedIn: <a href="https://www.linkedin.com/in/stephane-angers-%F0%9F%87%A8%F0%9F%87%A6-75981a6/?originalSubdomain=ca" rel="noopener" target="_blank">Profile</a></p>
-          <p class="meta">ORCID: <a href="https://orcid.org/0000-0001-7241-9044" rel="noopener" target="_blank">0000-0001-7241-9044</a></p>
+      <aside class="portrait-col">
+        <div class="card portrait-card">
+          <picture>
+            <source srcset="HPOT0409_1600.jpg 1600w, HPOT0409_1200.jpg 1200w, HPOT0409_800.jpg 800w" sizes="(min-width: 1024px) 38vw, 92vw">
+            <img class="portrait-img" src="HPOT0409_1200.jpg" alt="Portrait of Stéphane Angers at the Donnelly Centre">
+          </picture>
         </div>
       </aside>
     </div>
@@ -145,10 +157,6 @@
   <section>
     <div class="grid">
       <div class="left">
-        <h2>Biography</h2>
-        <p>Dr. Angers is an expert in the field of signal transduction. He obtained his Ph.D from the Université de Montréal in 2002 under the guidance of <a href="https://www.iric.ca/en/research/principal-investigators/michel-bouvier" rel="noopener" target="_blank">Dr. Michel Bouvier</a>. His thesis work led to the development and application of light energy transfer methodology for the study of protein-protein interaction and signal transduction. From 2002-2006 he was a Howard Hughes Post-Doctoral Fellow at the University of Washington in Seattle under the supervision of <a href="https://www.nasonline.org/directory-entry/randall-t-moon-wxtgm5/" rel="noopener" target="_blank">Dr. Randall T. Moon</a>, where he identified and characterized novel components of the Wnt signalling pathway and a new class of E3 ubiquitin ligases.</p>
-        <p>In October 2006, Dr. Angers established his independent research program in the Department of Pharmaceutical Sciences at the Faculty of Pharmacy and in the Department of Biochemistry at the University of Toronto. He is the recipient of the Canada Research Chair in Functional Architecture of Signal Transduction. His research program is developed to understand the signalling mechanisms underlying the Wnt family of growth factors and their signalling mechanisms in development, adult tissue homeostasis and in human diseases. His pioneer work led to the development of novel antibody molecules blocking and activating the Wnt pathway for the treatment of cancers and regenerative medicine applications. <a href="https://www.embopress.org/doi/full/10.15252/emmm.202113977" rel="noopener" target="_blank">His work led to the development of Restoret (MK-3000)</a>, which came from a program that was licensed to EyeBio (<a href="https://www.merck.com/news/merck-completes-acquisition-of-eyebio/" rel="noopener" target="_blank">acquired by Merck in the summer of 2024</a>). MK-3000, a trispecific tetravalent FZD4:LRP5 agonist, is now in <a href="https://www.merck.com/news/merck-and-eyebio-announce-initiation-of-phase-2b-3-clinical-trial-for-restoret-for-the-treatment-of-diabetic-macular-edema/" rel="noopener" target="_blank">Phase 2b/3 clinical trial</a> for the treatment of Diabetes Macular Edema. He is the scientific founder of AntlerA Therapeutics that was <a href="https://assets.roche.com/f/176343/x/8167d923ad/231024_ir_q3.pdf" rel="noopener" target="_blank">acquired by Roche in the summer of 2024</a>.</p>
-        <p>In September 2021 Dr. Angers was named Director of the Donnelly Centre of Cellular and Biomolecular Research at the University of Toronto, an internationally recognized Research Institute bringing together multidisciplinary teams of scientists.</p>
         <h2 style="margin-top:22px">Education &amp; Appointments</h2>
         <ul class="tight">
           <li><b>2021 – Present</b> — Director, <a href="https://thedonnellycentre.utoronto.ca" rel="noopener" target="_blank">Donnelly Centre for Cellular &amp; Biomolecular Research</a>, Temerty Faculty of Medicine, University of Toronto</li>
@@ -208,11 +216,10 @@
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
 </script>
-</body>
 <style>
 #angers-page main>section.hero{min-height:auto!important;height:auto!important;padding-bottom:0!important;margin-bottom:0!important}
 #angers-page main>section.hero .chips.tools{margin-bottom:0!important}
 #angers-page main>section.hero + section{margin-top:0!important;padding-top:0!important}
 </style>
-
+</body>
 </html>
