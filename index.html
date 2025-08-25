@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>Angers Lab | Cellular Signaling &amp; Regeneration</title>
-<meta content="Angers Lab at the University of Toronto. We study cellular signaling, Wnt/Frizzled biology, and regenerative medicine." name="description"/>
-<link href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;rect width='100' height='100' fill='%230a0a0a'/&gt;&lt;text x='50' y='58' font-size='60' text-anchor='middle' fill='%23ffffff' font-family='Arial, Helvetica, sans-serif'&gt;A&lt;/text&gt;&lt;/svg&gt;" rel="icon"/>
+<meta name="description" content="Angers Lab at the University of Toronto. We study cellular signaling, Wnt/Frizzled biology, and regenerative medicine."/>
+<link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;rect width='100' height='100' fill='%230a0a0a'/&gt;&lt;text x='50' y='58' font-size='60' text-anchor='middle' fill='%23ffffff' font-family='Arial, Helvetica, sans-serif'&gt;A&lt;/text&gt;&lt;/svg&gt;"/>
 <style>
     :root {
       --bg: #0b0c10;
@@ -120,7 +119,7 @@
       border:1px solid color-mix(in oklab, var(--text) 10%, transparent);
       font-weight:600;display:inline-flex;gap:10px;align-items:center;
     }
-/* --- Carousel --- */
+/* --- Non-Splide Carousel (unused) --- */
 .carousel { position: relative; margin: 24px 0 8px; }
 .carousel .viewport { overflow: hidden; border-radius: 16px; box-shadow: var(--shadow); border:1px solid color-mix(in oklab, var(--text) 10%, transparent); }
 .carousel .slides { display: flex; transition: transform .6s cubic-bezier(.22,.61,.36,1); }
@@ -155,30 +154,7 @@
 }
 .carousel .dot[aria-selected="true"] { background: linear-gradient(135deg, var(--brand), var(--brand-2)); border: none; }
 
-  
-    .logo-row img {
-  height: clamp(100px, 18vw, 200px);
-  max-width: 45%;
-  width: auto;
-  object-fit: contain;
-}
-    @media (max-width: 600px) {
-        .logo-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: clamp(32px, 6vw, 80px);
-  margin: 12px 0 36px;
-}
-        .logo-row img {
-  height: clamp(100px, 18vw, 200px);
-  max-width: 45%;
-  width: auto;
-  object-fit: contain;
-}
-    }
-    
-/* --- Logo row responsive rules (desktop-first) --- */
+/* --- Logo row responsive rules --- */
 .logo-row {
   display: flex;
   justify-content: center;
@@ -192,202 +168,215 @@
   width: auto;
   object-fit: contain;
 }
-/* Wrap and shrink on tablets/phones if needed */
 @media (max-width: 820px){
-  .logo-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: clamp(32px, 6vw, 80px);
-  margin: 12px 0 36px;
+  .logo-row { gap: clamp(24px, 6vw, 64px); }
 }
-  .logo-row img {
-  height: clamp(100px, 18vw, 200px);
-  max-width: 45%;
-  width: auto;
-  object-fit: contain;
-}
-}
-/* Very small phones */
 @media (max-width: 480px){
-  .logo-row img {
-  height: clamp(100px, 18vw, 200px);
-  max-width: 45%;
-  width: auto;
-  object-fit: contain;
-}
+  .logo-row img { max-width: 46%; }
 }
 </style>
-<link href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/css/splide.min.css" rel="stylesheet"/><style>
-/* Splide image sizing: keep aspect ratio, no cropping */
-.splide__slide img { max-width: 100%; height: auto; display: block; object-fit: contain; max-height: 75vh; }
-/* Optional: give some breathing room */
-.splide { margin: 0 auto; }
-/* If your page has rounded panels, keep it consistent */
-.splide__track { border-radius: 16px; overflow: hidden; }
-</style><style>
-.splide__track { border-radius: 16px; overflow: hidden; }
-.splide__slide { display:flex; align-items:center; justify-content:center; background:white; }
-.splide__slide img { max-width: 100%; height: auto; display: block; object-fit: contain; max-height: 75vh; }
+
+<!-- Splide CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/css/splide.min.css"/>
+<style>
+/* Splide iPhone-friendly sizing: avoid cropping and jitter */
+.splide { margin: 0 auto; max-width: var(--maxw); }
+.splide__track { border-radius: 16px; overflow: hidden; background: var(--panel); }
+.splide__slide {
+  display:flex; align-items:center; justify-content:center;
+  background: var(--panel);
+  will-change: transform;
+}
+/* Use dvh on iOS 16+; fallback to vh. Keep images crisp and contained */
+.splide__slide img {
+  max-width: 100%;
+  height: auto;
+  max-height: 78dvh;
+  object-fit: contain;
+  display: block;
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+}
+@supports not (height: 100dvh) {
+  .splide__slide img { max-height: 75vh; }
+}
+/* Slight inner padding so tall images don't touch edges on phones */
+@media (max-width: 600px){
+  .splide__slide { padding: 8px; }
+}
 #status { color:#6b7280; font-size:.9rem; }
-</style></head>
+</style>
+</head>
 <body>
 <a class="sr-only" href="#main">Skip to content</a>
 <header>
-<div class="wrap nav">
-<a aria-label="Angers Lab Home" class="brand" href="index.html">
-<span class="logo">A</span>
-<span>Angers Lab<br/><small>Cellular Signaling &amp; Regeneration</small></span>
-</a>
-<nav>
-<button aria-label="Open menu" class="menu-btn" onclick="toggleMenu()">☰</button>
-<ul id="menu">
-<li><a href="stephane-angers.html">Stephane Angers</a></li>
-<li><a href="research.html">Research</a></li>
-<li><a href="people.html">People</a></li>
-<li><a href="publications.html">Publications</a></li>
-<li><a href="news.html">News</a></li>
-<li><a href="#contact">Contact</a></li>
-</ul>
-</nav>
-</div>
+  <div class="wrap nav">
+    <a aria-label="Angers Lab Home" class="brand" href="index.html">
+      <span class="logo">A</span>
+      <span>Angers Lab<br/><small>Cellular Signaling &amp; Regeneration</small></span>
+    </a>
+    <nav>
+      <button class="menu-btn" aria-label="Open menu" onclick="toggleMenu()">☰</button>
+      <ul id="menu">
+        <li><a href="stephane-angers.html">Stephane Angers</a></li>
+        <li><a href="research.html">Research</a></li>
+        <li><a href="people.html">People</a></li>
+        <li><a href="publications.html">Publications</a></li>
+        <li><a href="news.html">News</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
 </header>
-<section class="hero" id="home">
-<div class="wrap hero-grid">
-<div>
-<div class="logo-row"><img alt="Donnelly Centre Logo" src="assets/images/donnelly-logo.png"/><img alt="University of Toronto Logo" src="assets/images/uoft-logo.png"/></div><h1>Decoding Cellular Signaling to understand <span style="background:linear-gradient(135deg,var(--brand),var(--brand-2));-webkit-background-clip:text;background-clip:text;color:transparent">tissue homeostasis, treat cancer and promote regeneration</span>.</h1>
-<p class="lead">We investigate how the Wnt family of growth factors and other signalling systems orchestrate tissue renewal and disease. Our work blends functional genomics, protein engineering, and cell biology to build therapies.</p>
-<div class="cta-row">
-<a class="btn fill" href="research.html">Explore our research</a>
-<a class="btn" href="publications.html">See publications</a>
-</div>
-</div>
-</div>
+
+<section id="home" class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="logo-row">
+        <img src="assets/images/donnelly-logo.png" alt="Donnelly Centre Logo"/>
+        <img src="assets/images/uoft-logo.png" alt="University of Toronto Logo"/>
+      </div>
+      <h1>Decoding Cellular Signaling to understand <span style="background:linear-gradient(135deg,var(--brand),var(--brand-2));-webkit-background-clip:text;background-clip:text;color:transparent">tissue homeostasis, treat cancer and promote regeneration</span>.</h1>
+      <p class="lead">We investigate how the Wnt family of growth factors and other signalling systems orchestrate tissue renewal and disease. Our work blends functional genomics, protein engineering, and cell biology to build therapies.</p>
+      <div class="cta-row">
+        <a class="btn fill" href="research.html">Explore our research</a>
+        <a class="btn" href="publications.html">See publications</a>
+      </div>
+    </div>
+  </div>
 </section>
-<section aria-label="Research visuals" class="wrap">
-<section aria-label="Lab figures carousel" class="splide" id="auto-splide"><div class="splide__track"><ul class="splide__list" id="slides"></ul></div></section>
+
+<section class="wrap" aria-label="Research visuals">
+  <section id="auto-splide" class="splide" aria-label="Lab figures carousel">
+    <div class="splide__track">
+      <ul id="slides" class="splide__list"></ul>
+    </div>
+  </section>
 </section>
+
 <section id="about">
-<div class="wrap">
-<div class="section-head">
-<h2>Our research</h2>
-<p class="sub">From receptor logic to regenerative therapies</p>
-</div>
-<div class="card" style="grid-column: span 12">
-<p class="mt-2">
-            The Angers Lab investigates how <b>Wnt signalling networks control stem cell behavior</b> in development, 
-            regeneration, and disease, and how these circuits can be manipulated to create <b>new therapeutic strategies</b>. 
-            We develop <b>synthetic, receptor-specific Wnt agonists</b> to precisely activate defined Frizzled receptors, 
-            enabling systematic dissection of receptor function in cells, organoids, and in vivo models, and translating these insights 
-            into regenerative medicine applications.
-          </p>
-<p class="mt-2">
-            In parallel, we lead a <b>comprehensive functional genomics program in glioblastoma</b>, applying genome-scale CRISPR-Cas9 
-            screens in patient-derived glioblastoma stem cells (GSCs) to identify genetic vulnerabilities, state-specific dependencies, 
-            and mechanisms of therapy resistance. This work aims to define the molecular circuitry sustaining GBM stemness and to guide 
-            the development of precision therapeutic strategies for this aggressive brain cancer.
-          </p>
-</div>
-</div>
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Our research</h2>
+      <p class="sub">From receptor logic to regenerative therapies</p>
+    </div>
+    <div class="card" style="grid-column: span 12">
+      <p class="mt-2">
+        The Angers Lab investigates how <b>Wnt signalling networks control stem cell behavior</b> in development, 
+        regeneration, and disease, and how these circuits can be manipulated to create <b>new therapeutic strategies</b>. 
+        We develop <b>synthetic, receptor-specific Wnt agonists</b> to precisely activate defined Frizzled receptors, 
+        enabling systematic dissection of receptor function in cells, organoids, and in vivo models, and translating these insights 
+        into regenerative medicine applications.
+      </p>
+      <p class="mt-2">
+        In parallel, we lead a <b>comprehensive functional genomics program in glioblastoma</b>, applying genome-scale CRISPR-Cas9 
+        screens in patient-derived glioblastoma stem cells (GSCs) to identify genetic vulnerabilities, state-specific dependencies, 
+        and mechanisms of therapy resistance. This work aims to define the molecular circuitry sustaining GBM stemness and to guide 
+        the development of precision therapeutic strategies for this aggressive brain cancer.
+      </p>
+    </div>
+  </div>
 </section>
 
-
-
-</section>
 <section id="contact">
-<div class="wrap">
-<div class="section-head">
-<h2>Contact</h2>
-<p class="sub">Donnelly Centre, University of Toronto</p>
-</div>
-<div class="grid">
-<div class="card" style="grid-column: span 7">
-<h3>Get in touch</h3>
-<p class="mt-2">Email: <a href="mailto:info@angerslab.org">info@angerslab.org</a></p>
-<p>Address: 160 College St, Toronto, ON</p>
-<p class="mt-2">For positions, include a CV and a short statement of research interests.</p>
-</div>
-<div class="card" style="grid-column: span 5">
-<h3>Follow</h3>
-<p class="mt-2"><a href="#">LinkedIn</a> · <a href="#">Google Scholar</a> · <a href="#">ORCID</a></p>
-</div>
-</div>
-</div>
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Contact</h2>
+      <p class="sub">Donnelly Centre, University of Toronto</p>
+    </div>
+    <div class="grid">
+      <div class="card" style="grid-column: span 7">
+        <h3>Get in touch</h3>
+        <p class="mt-2">Email: <a href="mailto:info@angerslab.org">info@angerslab.org</a></p>
+        <p>Address: 160 College St, Toronto, ON</p>
+        <p class="mt-2">For positions, include a CV and a short statement of research interests.</p>
+      </div>
+      <div class="card" style="grid-column: span 5">
+        <h3>Follow</h3>
+        <p class="mt-2"><a href="#">LinkedIn</a> · <a href="#">Google Scholar</a> · <a href="#">ORCID</a></p>
+      </div>
+    </div>
+  </div>
 </section>
+
 <footer>
-<div class="wrap footer-grid">
-<div>
-<b>Angers Lab</b>
-<p class="mt-1">Cellular Signaling &amp; Regeneration · Donnelly Centre · University of Toronto</p>
-</div>
-<div>
-<b>Navigate</b>
-<nav class="mt-1">
-<a href="research.html">Research</a><br/>
-<a href="people.html">People</a><br/>
-<a href="publications.html">Publications</a><br/>
-<a href="news.html">News</a>
-</nav>
-</div>
-<div>
-<b>Legal</b>
-<p class="mt-1">© <span id="year"></span> Angers Lab. All rights reserved.</p>
-</div>
-</div>
+  <div class="wrap footer-grid">
+    <div>
+      <b>Angers Lab</b>
+      <p class="mt-1">Cellular Signaling &amp; Regeneration · Donnelly Centre · University of Toronto</p>
+    </div>
+    <div>
+      <b>Navigate</b>
+      <nav class="mt-1">
+        <a href="research.html">Research</a><br/>
+        <a href="people.html">People</a><br/>
+        <a href="publications.html">Publications</a><br/>
+        <a href="news.html">News</a>
+      </nav>
+    </div>
+    <div>
+      <b>Legal</b>
+      <p class="mt-1">© <span id="year"></span> Angers Lab. All rights reserved.</p>
+    </div>
+  </div>
 </footer>
+
 <script>
-    function toggleMenu(){ document.getElementById('menu').classList.toggle('open'); }
-    document.getElementById('year').textContent = new Date().getFullYear();
-    document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
-      const id = a.getAttribute('href');
-      if(id.length > 1){ e.preventDefault(); document.querySelector(id).scrollIntoView({behavior:'smooth'}); }
-    }));
-    // --- Simple carousel ---
-(function(){
-  const root = document.getElementById('home-carousel');
-  if(!root) return;
-  const slidesWrap = root.querySelector('.slides');
-  const slides = Array.from(root.querySelectorAll('.slide'));
-  const dotsWrap = root.querySelector('.dots');
-  let i = 0, timer;
+  function toggleMenu(){ document.getElementById('menu').classList.toggle('open'); }
+  document.getElementById('year').textContent = new Date().getFullYear();
+  document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+    const id = a.getAttribute('href');
+    if(id.length > 1){ e.preventDefault(); document.querySelector(id).scrollIntoView({behavior:'smooth'}); }
+  }));
 
-  // dots
-  slides.forEach((_, idx)=>{
-    const b = document.createElement('button');
-    b.className = 'dot';
-    b.setAttribute('role','tab');
-    b.setAttribute('aria-label','Go to slide ' + (idx+1));
-    b.addEventListener('click', ()=> go(idx, true));
-    dotsWrap.appendChild(b);
-  });
+  // --- Non-Splide carousel init (kept in case it's used elsewhere) ---
+  (function(){
+    const root = document.getElementById('home-carousel');
+    if(!root) return;
+    const slidesWrap = root.querySelector('.slides');
+    const slides = Array.from(root.querySelectorAll('.slide'));
+    const dotsWrap = root.querySelector('.dots');
+    let i = 0, timer;
 
-  function update(){
-    slidesWrap.style.transform = `translateX(-${i*100}%)`;
-    dotsWrap.querySelectorAll('.dot').forEach((d, idx)=> d.setAttribute('aria-selected', idx===i ? 'true' : 'false'));
-  }
-  function go(n, user){
-    i = (n + slides.length) % slides.length;
-    update();
-    if(user) restart();
-  }
-  function next(){ go(i+1); }
-  function prev(){ go(i-1); }
+    slides.forEach((_, idx)=>{
+      const b = document.createElement('button');
+      b.className = 'dot';
+      b.setAttribute('role','tab');
+      b.setAttribute('aria-label','Go to slide ' + (idx+1));
+      b.addEventListener('click', ()=> go(idx, true));
+      dotsWrap.appendChild(b);
+    });
 
-  root.querySelector('.next').addEventListener('click', ()=> next());
-  root.querySelector('.prev').addEventListener('click', ()=> prev());
+    function update(){
+      slidesWrap.style.transform = `translateX(-${i*100}%)`;
+      dotsWrap.querySelectorAll('.dot').forEach((d, idx)=> d.setAttribute('aria-selected', idx===i ? 'true' : 'false'));
+    }
+    function go(n, user){
+      i = (n + slides.length) % slides.length;
+      update();
+      if(user) restart();
+    }
+    function next(){ go(i+1); }
+    function prev(){ go(i-1); }
 
-  function start(){ timer = setInterval(next, 5000); }
-  function stop(){ clearInterval(timer); }
-  function restart(){ stop(); start(); }
+    root.querySelector('.next').addEventListener('click', ()=> next());
+    root.querySelector('.prev').addEventListener('click', ()=> prev());
 
-  root.addEventListener('mouseenter', stop);
-  root.addEventListener('mouseleave', start);
+    function start(){ timer = setInterval(next, 5000); }
+    function stop(){ clearInterval(timer); }
+    function restart(){ stop(); start(); }
 
-  update(); start();
-})();
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
 
-  </script>
-<script defer="True" src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/js/splide.min.js"></script><p id="status"></p><script>
+    update(); start();
+  })();
+</script>
+
+<!-- Splide -->
+<script defer src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/js/splide.min.js"></script>
+<p id="status"></p>
+<script>
 document.addEventListener('DOMContentLoaded', async () => {
   const status = document.getElementById('status');
   const listEl = document.getElementById('slides');
@@ -418,15 +407,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         type: 'loop',
         pagination: true,
         arrows: true,
-        gap: '1rem',
+        gap: '0.5rem',
+        // Key changes for iPhone rendering:
+        // - Let Splide manage width; avoid autoWidth which can shrink images on mobile.
         autoHeight: true,
-        autoWidth: true,
         focus: 'center',
         speed: 600,
         autoplay: true,
         interval: 5000,
         pauseOnHover: true,
-        pauseOnFocus: true
+        pauseOnFocus: true,
+        breakpoints: {
+          600: { arrows: false }
+        }
       }).mount();
 
       status.textContent = 'Loaded ' + images.length + ' image' + (images.length > 1 ? 's' : '');
@@ -436,5 +429,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     status.textContent = 'Failed to load manifest: ' + err.message + ' — ensure assets/carousel/manifest.json is published.';
   }
 });
-</script></body>
+</script>
+</body>
 </html>
