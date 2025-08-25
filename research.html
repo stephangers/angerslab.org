@@ -17,15 +17,15 @@
     .wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(16px,3vw,32px)}
     header{position:sticky;top:0;z-index:50;backdrop-filter:saturate(140%) blur(8px);
       background:linear-gradient(180deg, color-mix(in oklab, var(--bg) 30%, transparent), color-mix(in oklab, var(--bg) 55%, transparent)), url('assets/images/banner-wnt.svg') center/cover no-repeat;
-      border-bottom:1px solid color-mix(in oklab, var(--text) 10%, transparent)}
-    .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+      border-bottom:2px solid color-mix(in oklab, var(--text) 10%, transparent)}
+    .nav{display:flex;align-items:center;justify-content:space-between;height:80px}
     .brand{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.2px}
     .brand .logo{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:grid;place-items:center;color:#001319;font-weight:900;box-shadow:var(--shadow)}
     .brand small{display:block;font-weight:600;color:var(--muted);line-height:1}
     nav ul{list-style:none;margin:0;padding:0;display:flex;gap:22px;align-items:center}
     nav a{color:var(--text);opacity:.95;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.25)}
     .menu-btn{display:none;background:none;border:none;color:var(--text);font-size:28px}
-    @media (max-width:860px){ nav ul{display:none;position:absolute;top:64px;left:0;right:0;background:var(--panel);border-bottom:1px solid color-mix(in oklab, var(--text) 10%, transparent);padding:12px 18px;flex-direction:column;gap:8px} nav ul.open{display:flex} .menu-btn{display:block} }
+    @media (max-width:860px){ nav ul{display:none;position:absolute;top:80px;left:0;right:0;background:var(--panel);border-bottom:2px solid color-mix(in oklab, var(--text) 10%, transparent);padding:12px 18px;flex-direction:column;gap:8px} nav ul.open{display:flex} .menu-btn{display:block} }
     main{padding:clamp(24px,5vw,48px) 0}
     .page-head{padding:clamp(18px,4vw,36px) 0}
     h1{font-size:clamp(28px,4vw,44px);margin:10px 0 8px}
@@ -60,6 +60,7 @@
       <nav>
         <button class="menu-btn" aria-label="Open menu" onclick="document.getElementById('menu').classList.toggle('open');">☰</button>
         <ul id="menu">
+          <li><a href="index.html">Home</a></li>
           <li><a href="stephane-angers.html">Stephane Angers</a></li>
           <li><a href="research.html" aria-current="page">Research</a></li>
           <li><a href="people.html">People</a></li>
