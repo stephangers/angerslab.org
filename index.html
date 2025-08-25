@@ -203,10 +203,24 @@
 .splide__track { border-radius: 16px; overflow: hidden; }
 </style><style>
 .splide__track { border-radius: 16px; overflow: hidden; }
-.splide__slide { display:flex; align-items:center; justify-content:center; background:white; }
+.splide__slide { display:flex; align-items:center; justify-content:center; background:var(--panel); }
 .splide__slide img { max-width: 100%; height: auto; display: block; object-fit: contain; max-height: 75vh; }
 #status { color:#6b7280; font-size:.9rem; }
-</style></head>
+</style>
+<style>
+/* --- Carousel sizing override (keep native image size within a stable frame) --- */
+.splide__track { border-radius: 16px; overflow: hidden; display:flex; align-items:center; justify-content:center; }
+.splide__slide { display:flex; align-items:center; justify-content:center; background:var(--panel); }
+.splide__slide img {
+  width: auto;         /* keep natural width */
+  height: auto;        /* keep natural height */
+  max-height: 75vh;    /* cap by viewport height */
+  object-fit: none;    /* no contain/cover scaling */
+  display: block;
+}
+</style>
+
+</head>
 <body>
 <a class="sr-only" href="#main">Skip to content</a>
 <header>
@@ -396,8 +410,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         pagination: true,
         arrows: true,
         gap: '1rem',
-        autoHeight: true,
-        autoWidth: true,
         focus: 'center',
         speed: 600,
         autoplay: true,
