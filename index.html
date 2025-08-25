@@ -196,7 +196,7 @@
 </style>
 <link href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/css/splide.min.css" rel="stylesheet"/><style>
 /* Splide image sizing: keep aspect ratio, no cropping */
-.splide__slide img { width: 100%; height: auto; display: block; object-fit: contain; }
+.splide__slide img { max-width: 100%; height: auto; display: block; object-fit: contain; max-height: 75vh; }
 /* Optional: give some breathing room */
 .splide { margin: 0 auto; }
 /* If your page has rounded panels, keep it consistent */
@@ -204,7 +204,7 @@
 </style><style>
 .splide__track { border-radius: 16px; overflow: hidden; }
 .splide__slide { display:flex; align-items:center; justify-content:center; background:white; }
-.splide__slide img { width: 100%; height: auto; display:block; object-fit: contain; }
+.splide__slide img { max-width: 100%; height: auto; display: block; object-fit: contain; max-height: 75vh; }
 #status { color:#6b7280; font-size:.9rem; }
 </style></head>
 <body>
@@ -363,22 +363,7 @@
 })();
 
   </script>
-<script defer="True" src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/js/splide.min.js"></script><script>
-document.addEventListener('DOMContentLoaded', function () {
-  var el = document.querySelector('.splide');
-  if (el) {
-    new Splide(el, {
-      type: 'loop',
-      pagination: true,
-      arrows: true,
-      gap: '1rem',
-      autoHeight: true,
-      focus: 'center',
-      speed: 600
-    }).mount();
-  }
-});
-</script><p id="status"></p><script>
+<script defer="True" src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/js/splide.min.js"></script><p id="status"></p><script>
 document.addEventListener('DOMContentLoaded', async () => {
   const status = document.getElementById('status');
   const listEl = document.getElementById('slides');
@@ -411,8 +396,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         arrows: true,
         gap: '1rem',
         autoHeight: true,
+        autoWidth: true,
         focus: 'center',
-        speed: 600
+        speed: 600,
+        autoplay: true,
+        interval: 5000,
+        pauseOnHover: true,
+        pauseOnFocus: true
       }).mount();
 
       status.textContent = 'Loaded ' + images.length + ' image' + (images.length > 1 ? 's' : '');
