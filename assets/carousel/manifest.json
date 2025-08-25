@@ -1,3 +1,13 @@
 {
-  "images": []
+  "images": [
+    "assets/carousel/angers-lab-picnic-2024.jpg",
+    "assets/carousel/fzd-selective-wnt-surrogates-differentiation.jpg",
+    "assets/carousel/fzd5-antibodies.jpg",
+    "assets/carousel/gbm-crispr-screen-workflow.jpg",
+    "assets/carousel/intestinal-organoids-brightfield.jpg",
+    "assets/carousel/scrnaseq-umap-clusters.jpg",
+    "assets/carousel/wnt-canonical-signaling-schematic.jpg",
+    "assets/carousel/wnt-destruction-complex-schematic.jpg",
+    "assets/carousel/wnt-therapeutic-antibody-xenograft.jpg"
+  ]
 }
