@@ -1,264 +1,231 @@
 #!/usr/bin/env python3
 """
-build_publications_patched.py
+build_publications.py
+Pulls publications from PubMed using eUtils and either prints HTML or injects into publications.html.
 
-Queries PubMed (E-utilities) using terms from a JSON config and updates an existing
-`publications.html` by replacing the block between:
-  <!-- PUBLIST:START --> ... <!-- PUBLIST:END -->
+Usage:
+  python build_publications.py --config scripts/pubmed_config.json --mode inject --target publications.html
+  python build_publications.py --config scripts/pubmed_config.json --mode print
 
-It also refreshes the "Updated automatically from PubMed: <timestamp>" pill if present.
-
-Config (JSON), example:
-{
-  "queries": [
-    {"term": "Angers S[Author] AND (1999:3000[DP])"}
-  ],
-  "retmax": 200
-}
-
-Usage examples:
-  # write only the fragment html
-  python3 scripts/build_publications_patched.py --config scripts/pubmed_config.json --mode fragment --output pubs.html
-
-  # inject the fragment into publications.html (recommended)
-  python3 scripts/build_publications_patched.py --config scripts/pubmed_config.json --mode inject --target publications.html
+No third‑party deps (urllib + xml.etree). Compatible with GitHub Actions runners.
 """
+from __future__ import annotations
+
 import argparse
+import collections
+import datetime as dt
+import html
 import json
+import re
 import sys
 import time
-import re
-from pathlib import Path
-import datetime as dt
-from urllib.parse import urlencode
-from urllib.request import urlopen
+import urllib.parse
+import urllib.request
+import xml.etree.ElementTree as ET
+from typing import Dict, List, Any, Iterable
 
-EUTILS_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+ESEARCH = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+EFETCH  = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
 
-def esearch(term: str, retmax: int = 200) -> list[str]:
-    """Return a list of PMIDs (strings) for a given term."""
-    params = {
-        "db": "pubmed",
-        "term": term,
-        "retmax": str(retmax),
-        "retmode": "json",
-        "sort": "pub date",
-    }
-    url = f"{EUTILS_BASE}/esearch.fcgi?{urlencode(params)}"
-    with urlopen(url) as r:
-        data = json.loads(r.read().decode("utf-8"))
-    ids = data.get("esearchresult", {}).get("idlist", [])
-    return [str(x) for x in ids]
+def _http_get(url: str, params: Dict[str, Any], retries: int = 3, sleep=0.4) -> bytes:
+    qs = urllib.parse.urlencode(params)
+    full = f"{url}?{qs}"
+    last_err = None
+    for i in range(retries):
+        try:
+            with urllib.request.urlopen(full, timeout=30) as r:
+                return r.read()
+        except Exception as e:
+            last_err = e
+            time.sleep(sleep * (i + 1))
+    raise RuntimeError(f"HTTP GET failed for {url}: {last_err}")
 
-def chunked(seq, n):
-    for i in range(0, len(seq), n):
-        yield seq[i:i+n]
+def esearch_ids(term: str, retmax: int = 200, api_key: str | None = None, email: str | None = None) -> List[str]:
+    params = {"db": "pubmed", "term": term, "retmax": retmax, "retmode": "xml", "sort": "pub+date"}
+    if api_key: params["api_key"] = api_key
+    if email:   params["email"]   = email
+    data = _http_get(ESEARCH, params)
+    root = ET.fromstring(data)
+    return [e.text for e in root.findall(".//IdList/Id") if e.text]
 
-def esummary(pmids: list[str]) -> list[dict]:
-    """Return ESummary records for given PMIDs."""
-    out = []
-    for batch in chunked(pmids, 200):
-        params = {
-            "db": "pubmed",
-            "id": ",".join(batch),
-            "retmode": "json"
-        }
-        url = f"{EUTILS_BASE}/esummary.fcgi?{urlencode(params)}"
-        with urlopen(url) as r:
-            data = json.loads(r.read().decode("utf-8"))
-        uids = data.get("result", {}).get("uids", [])
-        for uid in uids:
-            rec = data["result"].get(uid)
-            if rec:
-                out.append(rec)
-        time.sleep(0.34)  # be polite
+def efetch_records(pmids: Iterable[str], api_key: str | None = None, email: str | None = None) -> List[Dict[str, Any]]:
+    pmids = [p for p in pmids if p]
+    if not pmids:
+        return []
+    params = {"db": "pubmed", "id": ",".join(pmids), "retmode": "xml"}
+    if api_key: params["api_key"] = api_key
+    if email:   params["email"]   = email
+    xml_bytes = _http_get(EFETCH, params)
+    root = ET.fromstring(xml_bytes)
+    out: List[Dict[str, Any]] = []
+    for art in root.findall(".//PubmedArticle"):
+        med = art.find("./MedlineCitation")
+        pmid = (med.findtext("./PMID") or "").strip()
+        artinfo = med.find("./Article")
+        journal = (artinfo.findtext("./Journal/Title") or "").strip()
+        art_title = "".join(artinfo.findtext("./ArticleTitle") or "").strip()
+        # Authors
+        authors = []
+        for a in artinfo.findall("./AuthorList/Author"):
+            last = (a.findtext("LastName") or "").strip()
+            fore = (a.findtext("ForeName") or "").strip()
+            coll = (a.findtext("CollectiveName") or "").strip()
+            if coll:
+                authors.append(coll)
+            else:
+                nm = " ".join(x for x in [last, fore] if x).strip()
+                if nm: authors.append(nm)
+        # DOI
+        doi = ""
+        for aid in art.findall(".//ArticleIdList/ArticleId"):
+            if aid.attrib.get("IdType") == "doi":
+                doi = aid.text or ""
+                break
+        # Year
+        year = ""
+        # Try ArticleDate first, then Journal pub date, then PubDate Year
+        year_candidates = [
+            artinfo.findtext("./ArticleDate/Year"),
+            artinfo.findtext("./Journal/JournalIssue/PubDate/Year"),
+            med.findtext("./DateCompleted/Year"),
+            med.findtext("./DateCreated/Year"),
+        ]
+        for y in year_candidates:
+            if y and re.fullmatch(r"\d{4}", y):
+                year = y
+                break
+        if not year:
+            year = "Unknown"
+        # Month/day string for sorting/tooltip
+        month = artinfo.findtext("./ArticleDate/Month") or artinfo.findtext("./Journal/JournalIssue/PubDate/Month") or ""
+        day   = artinfo.findtext("./ArticleDate/Day") or artinfo.findtext("./Journal/JournalIssue/PubDate/Day") or ""
+        # Compose record
+        out.append({
+            "pmid": pmid,
+            "title": art_title,
+            "journal": journal,
+            "authors": authors,
+            "doi": doi,
+            "year": year,
+            "month": month,
+            "day": day,
+        })
     return out
 
-def normalize_record(rec: dict) -> dict:
-    """Map ESummary -> normalized fields used for rendering & search."""
-    title = (rec.get("title") or "").strip().rstrip(".")
-    journal = (rec.get("fulljournalname") or rec.get("source") or "").strip()
-    pubdate = rec.get("pubdate") or ""
-    # Year parsing (pubdate could be "2023 Aug 14" or "2021 Winter" etc.)
-    m = re.search(r"(19|20)\d{2}", pubdate)
-    year = int(m.group(0)) if m else 0
-    authors = []
-    for a in rec.get("authors", []):
-        name = a.get("name") or ""
-        if name:
-            authors.append(name)
-    doi = ""
-    for idobj in rec.get("articleids", []):
-        if idobj.get("idtype") == "doi":
-            doi = idobj.get("value", "")
-            break
-    pmid = rec.get("uid") or ""
-    # Build search text
-    search_text = " ".join([title, journal, pubdate, " ".join(authors), doi, pmid]).lower()
-    return {
-        "title": title,
-        "journal": journal,
-        "year": year,
-        "pubdate": pubdate,
-        "authors": authors,
-        "doi": doi,
-        "pmid": pmid,
-        "search_text": search_text
-    }
-
-def group_by_year(records: list[dict]) -> dict[int, list[dict]]:
-    by = {}
+def render_html(records: List[Dict[str, Any]]) -> str:
+    # Sort by year (desc) then by pmid desc (rough proxy for recency)
+    records = sorted(records, key=lambda r: (r.get("year",""), r.get("pmid","")), reverse=True)
+    by_year = collections.OrderedDict()
     for r in records:
-        by.setdefault(r["year"], []).append(r)
-    # sort records within a year by pubdate desc-ish (fall back to title)
-    for y in list(by.keys()):
-        by[y].sort(key=lambda r: (r.get("pubdate") or "", r.get("title") or ""), reverse=True)
-    return dict(sorted(by.items(), key=lambda kv: kv[0], reverse=True))
+        by_year.setdefault(r["year"], []).append(r)
 
-def render_fragment(records_by_year: dict[int, list[dict]]) -> str:
-    parts = []
-    for year, recs in records_by_year.items():
-        if year == 0:
-            # Put undated at the end
-            continue
-        parts.append(f'<section class="year-block" data-year="{year}">')
-        parts.append(f'  <h2 class="year">{year}</h2>')
-        parts.append('  <ol class="pubs">')
-        for r in recs:
-            authors = ", ".join(r["authors"])
-            title = r["title"]
-            journal = r["journal"]
-            doi_html = f'<a href="https://doi.org/{r["doi"]}" target="_blank" rel="noopener">DOI</a>' if r["doi"] else ""
-            pmid_html = f'<a href="https://pubmed.ncbi.nlm.nih.gov/{r["pmid"]}/" target="_blank" rel="noopener">PMID:{r["pmid"]}</a>' if r["pmid"] else ""
-            links = " · ".join([x for x in (doi_html, pmid_html) if x])
-            parts.append(
-                '    <li class="pub" data-search="{search}">'
-                '      <div class="meta">{authors}</div>'
-                '      <div class="title">{title}</div>'
-                '      <div class="journal">{journal}</div>'
-                '      <div class="links">{links}</div>'
-                '    </li>'.format(
-                    search=r["search_text"].replace('"', "&quot;"),
-                    authors=authors,
-                    title=title,
-                    journal=journal,
-                    links=links or ""
-                )
+    def esc(x: str) -> str: return html.escape(x or "")
+
+    lines: List[str] = []
+    lines.append("<!-- PUBLIST:START -->")
+    for year, items in by_year.items():
+        lines.append(f'<section class="year-block" data-year="{esc(year)}">')
+        lines.append(f'  <h2 class="year">{esc(year)}</h2>')
+        lines.append('  <ol class="pubs">')
+        for it in items:
+            meta = esc(", ".join(it["authors"]))
+            title = esc(it["title"])
+            journal = esc(it["journal"])
+            pmid = esc(it["pmid"])
+            doi = esc(it["doi"])
+            data_search = f"{title} {journal} {it.get('year','')} {meta} {doi} {pmid}".lower()
+            links = []
+            if doi:
+                links.append(f'<a href="https://doi.org/{doi}" target="_blank" rel="noopener">DOI</a>')
+            if pmid:
+                links.append(f'<a href="https://pubmed.ncbi.nlm.nih.gov/{pmid}/" target="_blank" rel="noopener">PMID:{pmid}</a>')
+            links_html = " · ".join(links) if links else ""
+            lines.append(
+                f'    <li class="pub" data-search="{html.escape(data_search)}">'
+                f'      <div class="meta">{meta}</div>'
+                f'      <div class="title">{title}</div>'
+                f'      <div class="journal">{journal}</div>'
+                f'      <div class="links">{links_html}</div>'
+                f'    </li>'
             )
-        parts.append('  </ol>')
-        parts.append('</section>')
-    # add undated (year == 0) at the end if any
-    if any(y == 0 for y in records_by_year.keys()):
-        recs = records_by_year.get(0, [])
-        if recs:
-            parts.append(f'<section class="year-block" data-year="undated">')
-            parts.append(f'  <h2 class="year">Undated</h2>')
-            parts.append('  <ol class="pubs">')
-            for r in recs:
-                authors = ", ".join(r["authors"])
-                title = r["title"]
-                journal = r["journal"]
-                pmid_html = f'<a href="https://pubmed.ncbi.nlm.nih.gov/{r["pmid"]}/" target="_blank" rel="noopener">PMID:{r["pmid"]}</a>' if r["pmid"] else ""
-                parts.append(
-                    '    <li class="pub" data-search="{search}">'
-                    '      <div class="meta">{authors}</div>'
-                    '      <div class="title">{title}</div>'
-                    '      <div class="journal">{journal}</div>'
-                    '      <div class="links">{links}</div>'
-                    '    </li>'.format(
-                        search=r["search_text"].replace('"', "&quot;"),
-                        authors=authors,
-                        title=title,
-                        journal=journal,
-                        links=pmid_html or ""
-                    )
-                )
-            parts.append('  </ol>')
-            parts.append('</section>')
-    return "\n".join(parts)
+        lines.append("  </ol>")
+        lines.append("</section>")
+    lines.append("<!-- PUBLIST:END -->")
+    return "\n".join(lines)
 
-def inject_into_file(target_path: str, inner_html: str):
-    p = Path(target_path)
-    if not p.exists():
-        raise FileNotFoundError(f"{target_path} not found.")
-    html = p.read_text(encoding="utf-8")
-    start = "<!-- PUBLIST:START -->"
-    end = "<!-- PUBLIST:END -->"
-    if start not in html or end not in html:
-        raise RuntimeError("Markers <!-- PUBLIST:START --> / <!-- PUBLIST:END --> not found in target HTML.")
+def inject_into_html(target_path: str, new_block: str, updated_iso_utc: str) -> None:
+    with open(target_path, "r", encoding="utf-8") as f:
+        html_in = f.read()
 
-    before, mid, after = html.partition(start)
-    mid2, end_marker, after2 = after.partition(end)
-    out = before + start + "\n" + inner_html + "\n" + end_marker + after2
+    # Replace block between PUBLIST markers
+    if "<!-- PUBLIST:START -->" in html_in and "<!-- PUBLIST:END -->" in html_in:
+        html_out = re.sub(
+            r"<!-- PUBLIST:START -->.*?<!-- PUBLIST:END -->",
+            new_block,
+            html_in,
+            flags=re.S,
+        )
+    else:
+        # If markers missing, append near end of <main>
+        html_out = re.sub(r"(</main>)", new_block + r"\n\1", html_in, count=1)
 
-    # Refresh the Updated pill timestamp (UTC) if present.
-    try:
-        now = dt.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-        out = re.sub(r"(Updated automatically from PubMed: )[^<]+", r"\1" + now, out)
-    except Exception:
-        pass
+    # Replace __UPDATED_AT__ token and/or BUILD_UTC comment
+    html_out = html_out.replace("__UPDATED_AT__", updated_iso_utc)
+    if "BUILD_UTC:" not in html_out:
+        html_out = re.sub(r"(</head>)", f"<!-- BUILD_UTC: {updated_iso_utc} -->\\n\\1", html_out, count=1)
 
-    p.write_text(out, encoding="utf-8")
-
-def load_config(path: str) -> dict:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    with open(target_path, "w", encoding="utf-8") as f:
+        f.write(html_out)
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--config", required=True, help="Path to config JSON.")
-    ap.add_argument("--mode", choices=["page", "fragment", "inject"], default="inject")
-    ap.add_argument("--output", help="Output path (for page/fragment modes).")
-    ap.add_argument("--target", help="Existing HTML file path (for inject mode).")
+    ap.add_argument("--config", required=True, help="Path to pubmed_config.json")
+    ap.add_argument("--mode", choices=["print","inject"], default="print")
+    ap.add_argument("--target", default="publications.html", help="Target HTML file when mode=inject")
+    ap.add_argument("--api-key", dest="api_key", default=None, help="Optional NCBI API key")
+    ap.add_argument("--email", dest="email", default=None, help="Optional contact email for NCBI")
     args = ap.parse_args()
 
-    cfg = load_config(args.config)
-    terms = [q["term"] for q in cfg.get("queries", []) if q.get("term")]
-    if not terms:
+    with open(args.config, "r", encoding="utf-8") as f:
+        cfg = json.load(f)
+
+    queries = [q.get("term","") for q in cfg.get("queries", []) if q.get("term")]
+    retmax  = int(cfg.get("retmax", 200))
+    if not queries:
         print("No queries found in config.", file=sys.stderr)
         sys.exit(2)
-    retmax = int(cfg.get("retmax", 200))
 
-    # 1) ESearch across terms, dedupe PMIDs
-    pmids = []
-    for t in terms:
-        ids = esearch(t, retmax=retmax)
-        pmids.extend(ids)
-    pmids = sorted(set(pmids), key=lambda x: int(x) if x.isdigit() else 0, reverse=True)
-    if not pmids:
-        print("No PMIDs found.", file=sys.stderr)
-        sys.exit(0)
+    pmid_list: List[str] = []
+    for term in queries:
+        ids = esearch_ids(term, retmax=retmax, api_key=args.api_key, email=args.email)
+        pmid_list.extend(ids)
+        time.sleep(0.34)  # polite pacing
 
-    # 2) ESummary and normalize
-    raw = esummary(pmids)
-    records = [normalize_record(r) for r in raw]
-    # 3) Group
-    by_year = group_by_year(records)
+    # de-duplicate but keep order (latest first from esearch)
+    seen = set()
+    pmid_list_uniq = []
+    for p in pmid_list:
+        if p not in seen:
+            seen.add(p)
+            pmid_list_uniq.append(p)
 
-    if args.mode == "fragment":
-        if not args.output:
-            print("--output is required for mode=fragment", file=sys.stderr)
-            sys.exit(2)
-        frag = render_fragment(by_year)
-        Path(args.output).write_text(frag, encoding="utf-8")
-        print(f"Wrote fragment to {args.output}.")
-    elif args.mode == "page":
-        if not args.output:
-            print("--output is required for mode=page", file=sys.stderr)
-            sys.exit(2)
-        # minimal standalone page; mostly for debugging
-        frag = render_fragment(by_year)
-        page = "<!doctype html><meta charset='utf-8'><title>Publications</title>" + frag
-        Path(args.output).write_text(page, encoding="utf-8")
-        print(f"Wrote page to {args.output}.")
+    # fetch
+    records = []
+    # chunk efetch in batches of 200
+    B = 200
+    for i in range(0, len(pmid_list_uniq), B):
+        chunk = pmid_list_uniq[i:i+B]
+        records.extend(efetch_records(chunk, api_key=args.api_key, email=args.email))
+        time.sleep(0.34)
+
+    html_block = render_html(records)
+    updated_iso = dt.datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+
+    if args.mode == "print":
+        print(html_block)
     else:
-        if not args.target:
-            print("--target is required for mode=inject", file=sys.stderr)
-            sys.exit(2)
-        frag = render_fragment(by_year)
-        inject_into_file(args.target, frag)
-        total = sum(len(v) for v in by_year.values())
-        print(f"Injected {total} records into {args.target}.")
+        inject_into_html(args.target, html_block, updated_iso)
+        print(f"Injected {len(records)} records into {args.target} at {updated_iso}")
 
 if __name__ == "__main__":
     main()
