@@ -1,1 +1,33 @@
-<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>News | Angers Lab</title></head><body><h1>News</h1><div id='news'></div><script>fetch('assets/data/news.json').then(r=>r.json()).then(d=>{document.getElementById('news').textContent=d.length+' posts';});</script></body></html>
+<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>News | Angers Lab</title><style>
+header { position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(140%) blur(8px); background: linear-gradient(180deg, color-mix(in oklab, var(--bg) 30%, transparent), color-mix(in oklab, var(--bg) 55%, transparent)), url('assets/images/banner-wnt.svg') center/cover no-repeat; border-bottom: 2px solid color-mix(in oklab, var(--text) 10%, transparent); }
+.nav { display: flex; align-items: center; justify-content: space-between; height: 80px; }
+.brand { display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: .2px; }
+.brand .logo { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--brand), var(--brand-2)); display: grid; place-items: center; color: #001319; font-weight: 900; box-shadow: var(--shadow); }
+nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 22px; align-items: center; }
+nav a { color: var(--text); opacity: .95; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+.menu-btn { display: none; background: none; border: none; color: var(--text); font-size: 28px; }
+@media (max-width: 860px) {
+      nav ul { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--panel); border-bottom: 2px solid color-mix(in oklab, var(--text) 10%, transparent); padding: 12px 18px; flex-direction: column; gap: 8px; }
+
+nav a.active { font-weight: bold; text-decoration: underline; }
+</style>
+</head><body>
+<header>
+  <div class="wrap nav">
+    <a aria-label="Angers Lab Home" class="brand" href="index.html">
+      <span class="logo">A</span>
+      <span>Angers Lab<br/><small>Cellular Signaling &amp; Regeneration</small></span>
+    </a>
+    <nav>
+      <button class="menu-btn" aria-label="Open menu" onclick="toggleMenu()">☰</button>
+      <ul id="menu"><li><a href="index.html">Home</a></li>
+<li><a href="stephane-angers.html">Stephane Angers</a></li>
+        <li><a href="research.html">Research</a></li>
+        <li><a href="people.html">People</a></li>
+        <li><a href="publications.html">Publications</a></li>
+        <li><a href="news.html" class="active"><span class="active"></span>News</a></li>
+        <li><a href="#contact">Contact</a></li></ul>
+    </nav>
+  </div>
+</header>
+<h1>News</h1><div id='news'></div><script>fetch('assets/data/news.json').then(r=>r.json()).then(d=>{document.getElementById('news').textContent=d.length+' posts';});</script></body></html>

@@ -25,28 +25,16 @@ x<!DOCTYPE html>
     .wrap{max-width:var(--maxw);margin-inline:auto;padding-inline:clamp(16px,3vw,32px)}
 
     /* Wnt banner behind the header nav */
-    header{
-      position:sticky;top:0;z-index:50;
-      backdrop-filter:saturate(140%) blur(8px);
-      background:
-        linear-gradient(180deg, color-mix(in oklab, var(--bg) 30%, transparent),
-                               color-mix(in oklab, var(--bg) 55%, transparent)),
-        url('assets/images/banner-wnt.svg') center/cover no-repeat;
-      border-bottom:2px solid color-mix(in oklab, var(--text) 10%, transparent)
-    }
-    .nav{display:flex;align-items:center;justify-content:space-between;height:80px}
-    .brand{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.2px}
-    .brand .logo{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:grid;place-items:center;color:#001319;font-weight:900;box-shadow:var(--shadow)}
+    
+    
+    
+    
     .brand small{display:block;font-weight:600;color:var(--muted);line-height:1}
-    nav ul{list-style:none;margin:0;padding:0;display:flex;gap:22px;align-items:center}
-    nav a{color:var(--text);opacity:.95;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.25)}
-    .menu-btn{display:none;background:none;border:none;color:var(--text);font-size:28px}
-    @media (max-width:860px){
-      nav ul{display:none;position:absolute;top:80px;left:0;right:0;background:var(--panel);
-             border-bottom:2px solid color-mix(in oklab, var(--text) 10%, transparent);
-             padding:12px 18px;flex-direction:column;gap:8px}
-      nav ul.open{display:flex}
-      .menu-btn{display:block}
+    
+    
+    
+    
+      
     }
 
     main{padding:clamp(28px,6vw,64px) 0}
@@ -80,6 +68,19 @@ x<!DOCTYPE html>
     @media (max-width:980px){ .bio-col{grid-column:span 12} .portrait-col{grid-column:span 12} }
     .portrait-card{padding:0;height:100%;overflow:hidden}
     .portrait-img{display:block;width:100%;height:100%;object-fit:cover;object-position:40% top;}
+
+/* Canonical site header + nav */
+header { position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(140%) blur(8px); background: linear-gradient(180deg, color-mix(in oklab, var(--bg) 30%, transparent), color-mix(in oklab, var(--bg) 55%, transparent)), url('assets/images/banner-wnt.svg') center/cover no-repeat; border-bottom: 2px solid color-mix(in oklab, var(--text) 10%, transparent); }
+.nav { display: flex; align-items: center; justify-content: space-between; height: 80px; }
+.brand { display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: .2px; }
+.brand .logo { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--brand), var(--brand-2)); display: grid; place-items: center; color: #001319; font-weight: 900; box-shadow: var(--shadow); }
+nav ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 22px; align-items: center; }
+nav a { color: var(--text); opacity: .95; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
+.menu-btn { display: none; background: none; border: none; color: var(--text); font-size: 28px; }
+@media (max-width: 860px) {
+      nav ul { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--panel); border-bottom: 2px solid color-mix(in oklab, var(--text) 10%, transparent); padding: 12px 18px; flex-direction: column; gap: 8px; }
+
+nav a.active { font-weight: bold; text-decoration: underline; }
 </style>
 </head>
 <body id="angers-page">
@@ -91,16 +92,14 @@ x<!DOCTYPE html>
       <span>Angers Lab<br/><small>Cellular Signaling &amp; Regeneration</small></span>
     </a>
     <nav>
-      <button aria-label="Open menu" class="menu-btn" onclick="document.getElementById('menu').classList.toggle('open');">☰</button>
-      <ul id="menu">
-          <li><a href="index.html">Home</a></li>
-        <li><a aria-current="page" href="stephane-angers.html">Stephane Angers</a></li>
+      <button class="menu-btn" aria-label="Open menu" onclick="toggleMenu()">☰</button>
+      <ul id="menu"><li><a href="index.html">Home</a></li>
+<li><a href="stephane-angers.html" class="active"><span class="active"></span>Stephane Angers</a></li>
         <li><a href="research.html">Research</a></li>
         <li><a href="people.html">People</a></li>
         <li><a href="publications.html">Publications</a></li>
         <li><a href="news.html">News</a></li>
-        <li><a href="index.html#contact">Contact</a></li>
-      </ul>
+        <li><a href="#contact">Contact</a></li></ul>
     </nav>
   </div>
 </header>
@@ -205,7 +204,7 @@ x<!DOCTYPE html>
     <div>
       <b>Navigate</b>
       <nav class="mt-1">
-        <a href="stephane-angers.html">Stephane Angers</a><br/>
+        <a href="stephane-angers.html" class="active"><span class="active"></span>Stephane Angers</a><br/>
         <a href="research.html">Research</a><br/>
         <a href="people.html">People</a><br/>
         <a href="publications.html">Publications</a><br/>
