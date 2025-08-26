@@ -146,12 +146,17 @@ nav a.active { font-weight: bold; text-decoration: underline; }
       <aside class="portrait-col">
         <div class="card portrait-card">
             <picture>
- <source srcset="assets/images/steph_angers.jpg" 800w" sizes="(min-width: 1024px) 38vw, 92vw">
+  <source
+    srcset="assets/images/steph_angers_portrait_1600.jpg 1600w,
+            assets/images/steph_angers_portrait_1200.jpg 1200w,
+            assets/images/steph_angers_portrait_800.jpg 800w"
+    sizes="(min-width: 1024px) 38vw, 92vw">
   <img class="portrait-img"
-    src="assets/images/steph_angers.jpg"
-    alt="Portrait of Stéphane Angers at the Donnelly Centre"
-    loading="lazy"
-    decoding="async">
+       src="assets/images/steph_angers_portrait_1200.jpg"
+       alt="Portrait of Stéphane Angers at the Donnelly Centre"
+       loading="lazy"
+       decoding="async"
+       style="object-position: 20% center;">
 </picture>
         
         </div>
