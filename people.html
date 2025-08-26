@@ -200,6 +200,12 @@ nav a { color: var(--text); opacity: .95; font-weight: 700; text-shadow: 0 1px 2
 /* Optional: prevent body from scrolling when menu is open */
 body.no-scroll { overflow: hidden; }
 </style>
+<style>
+@media (max-width: 860px) {
+  .menu-btn { display: inline-block !important; }
+  nav ul.open { display: flex !important; }
+}
+</style>
 </head>
 <body class="people-page">
 <header>

@@ -101,6 +101,12 @@ nav a.active { font-weight: bold; text-decoration: underline; }
 /* Optional: prevent body from scrolling when menu is open */
 body.no-scroll { overflow: hidden; }
 </style>
+<style>
+@media (max-width: 860px) {
+  .menu-btn { display: inline-block !important; }
+  nav ul.open { display: flex !important; }
+}
+</style>
 </head>
 <body>
 <a class="sr-only" href="#main">Skip to content</a>
