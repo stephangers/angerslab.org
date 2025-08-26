@@ -211,13 +211,16 @@ nav a.active { font-weight: bold; text-decoration: underline; }
 }
 #status { color:#6b7280; font-size:.9rem; }
 
-/* === Mobile navigation (hamburger) === */
-.menu-btn{display:none;background:none;border:none;color:var(--text);font-size:28px;line-height:1}
+/* === Mobile navigation (hamburger) v2 === */
+.menu-btn{display:none;background:none;border:none;font-size:28px;line-height:1}
 @media (max-width:860px){
-  .nav{position:relative}
-  .menu-btn{display:block}
-  nav ul{display:none;position:absolute;top:64px;left:0;right:0;background:var(--panel);border-bottom:2px solid color-mix(in oklab, var(--text) 10%, transparent);padding:12px 18px;flex-direction:column;gap:8px;z-index:60}
-  nav ul.open{display:flex}
+  nav{position:relative}
+  nav .menu-btn{display:block}
+  /* Hide any existing horizontal nav on mobile, unless opened */
+  nav ul{display:none !important; padding:12px 18px; margin:0; list-style:none; gap:10px; flex-direction:column; background:var(--panel); border-bottom:1px solid rgba(0,0,0,.08)}
+  nav ul.open{display:flex !important}
+  /* Make links full-width tappable targets */
+  nav ul.open li a{display:block; padding:8px 4px}
 }
 </style>
 </head>
@@ -442,6 +445,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     status.textContent = 'Failed to load manifest: ' + err.message + ' — ensure assets/carousel/manifest.json is published.';
   }
 });
+</script>
+
+<script>
+// Mobile hamburger menu (v2 stronger)
+(function(){
+  const nav = document.querySelector('nav');
+  if(!nav) return;
+  let btn = nav.querySelector('.menu-btn');
+  let menu = nav.querySelector('ul#menu') || nav.querySelector('ul');
+  if(!btn){
+    btn = document.createElement('button');
+    btn.className = 'menu-btn';
+    btn.setAttribute('aria-label','Open menu');
+    btn.setAttribute('aria-expanded','false');
+    btn.setAttribute('aria-controls','menu');
+    btn.textContent = '☰';
+    nav.insertBefore(btn, nav.firstChild);
+  }
+  if(menu && !menu.id){ menu.id = 'menu'; }
+  if(btn && menu){
+    btn.addEventListener('click', ()=>{
+      const open = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    // Close after navigation
+    menu.querySelectorAll('a').forEach(a=>a.addEventListener('click', ()=>{
+      if(menu.classList.contains('open')){
+        menu.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+      }
+    }));
+    // Reset on desktop
+    const reset = ()=>{
+      if(window.innerWidth > 860){
+        menu.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+      }
+    };
+    window.addEventListener('resize', reset);
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) reset(); });
+  }
+})();
 </script>
 </body>
 </html>
