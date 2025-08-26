@@ -197,7 +197,8 @@ nav a { color: var(--text); opacity: .95; font-weight: 700; text-shadow: 0 1px 2
 .menu-btn { display: none; background: none; border: none; color: var(--text); font-size: 28px; }
 @media (max-width: 860px) {
       nav ul { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--panel); border-bottom: 2px solid color-mix(in oklab, var(--text) 10%, transparent); padding: 12px 18px; flex-direction: column; gap: 8px; }
-
+</style>
+<style>
 /* === Mobile navigation (hamburger) v3 unified === */
 nav{display:flex;align-items:center;gap:16px}
 nav .brand{flex:0 0 auto}
@@ -212,8 +213,7 @@ nav ul{list-style:none;margin:0;padding:0;display:flex;gap:18px}
   nav ul.open li{width:100%;text-align:center}
   nav ul.open li a{display:block;padding:8px 6px}
 }
-</style>
-</head>
+</style></head>
 <body class="people-page">
 <header>
   <div class="wrap nav">
@@ -223,10 +223,10 @@ nav ul{list-style:none;margin:0;padding:0;display:flex;gap:18px}
     </a>
     <nav>
       <button class="menu-btn" aria-label="Open menu" onclick="toggleMenu()">☰</button>
-      <ul id="menu" id="menu"><li><a href="index.html">Home</a></li>
+      <ul id="menu"><li><a href="index.html" class="active"><span class="active"></span>Home</a></li>
 <li><a href="stephane-angers.html">Stephane Angers</a></li>
         <li><a href="research.html">Research</a></li>
-        <li><a href="people.html" class="active"><span class="active"></span>People</a></li>
+        <li><a href="people.html">People</a></li>
         <li><a href="publications.html">Publications</a></li>
         <li><a href="news.html">News</a></li>
         <li><a href="#contact">Contact</a></li></ul>
@@ -387,14 +387,12 @@ const links = document.createElement('div');
       render();
     })();
   </script>
-
 <script>
 // Mobile hamburger menu (v3 unified)
 (function(){
   const nav = document.querySelector('nav');
   if(!nav) return;
   let btn = nav.querySelector('.menu-btn');
-  // Prefer an ul with id="menu"; else first UL inside nav
   let menu = nav.querySelector('ul#menu') || nav.querySelector('ul');
   if(!btn){
     btn = document.createElement('button');
@@ -412,14 +410,12 @@ const links = document.createElement('div');
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     };
     btn.addEventListener('click', toggle);
-    // Close after link navigation
     menu.querySelectorAll('a').forEach(a=>a.addEventListener('click', ()=>{
       if(menu.classList.contains('open')){
         menu.classList.remove('open');
         btn.setAttribute('aria-expanded','false');
       }
     }));
-    // Reset on desktop breakpoint
     const reset = ()=>{
       if(window.innerWidth > 860){
         menu.classList.remove('open');
@@ -430,6 +426,5 @@ const links = document.createElement('div');
     document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) reset(); });
   }
 })();
-</script>
-</body>
+</script></body>
 </html>
