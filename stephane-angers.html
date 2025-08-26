@@ -71,9 +71,17 @@
     nav a { color: var(--text); opacity: .95; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,.25); }
     .menu-btn { display: none; background: none; border: none; color: var(--text); font-size: 28px; }
     @media (max-width: 860px) {
+
+  .menu-btn { display: inline-block; }
+  nav ul.open { display: flex; }
+
+      nav ul { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--panel); border-bottom: 2px solid color-mix(in oklab, var(--text) 10%, transparent); padding: 12px 18px; flex-direction: column; gap: 8px; }
+    
       nav ul { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--panel); border-bottom: 2px solid color-mix(in oklab, var(--text) 10%, transparent); padding: 12px 18px; flex-direction: column; gap: 8px; }
     }
     nav a.active { font-weight: bold; text-decoration: underline; }
+/* Optional: prevent body from scrolling when menu is open */
+body.no-scroll { overflow: hidden; }
 </style>
 </head>
 <body id="angers-page">
@@ -85,7 +93,7 @@
       <span>Angers Lab<br/><small>Cellular Signaling &amp; Regeneration</small></span>
     </a>
     <nav>
-      <button class="menu-btn" aria-label="Open menu" onclick="toggleMenu()">☰</button>
+      <button class="menu-btn" aria-label="Open menu" onclick="toggleMenu()" aria-expanded="false">☰</button>
       <ul id="menu">
         <li><a href="index.html">Home</a></li>
         <li><a href="stephane-angers.html" class="active"><span class="active"></span>Stephane Angers</a></li>
@@ -210,15 +218,7 @@
 </footer>
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
-  function toggleMenu(){
-    const menu = document.getElementById('menu');
-    const isOpen = getComputedStyle(menu).display !== 'none';
-    menu.style.display = isOpen ? 'none' : 'flex';
-    menu.style.flexDirection = 'column';
-    menu.style.gap = '8px';
-    menu.style.padding = '12px 18px';
-    menu.style.background = getComputedStyle(document.body).getPropertyValue('--panel');
-  }
+  
 </script>
 <style>
 /* Tighten the top section spacing since the bubbles are smaller */
@@ -236,5 +236,29 @@
   outline: none;
 }
 </style>
+<script>
+(function () {
+  const btn  = document.querySelector('.menu-btn');
+  const menu = document.getElementById('menu');
+
+  if (!btn || !menu) return;
+
+  function set(open) {
+    menu.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', String(open));
+    document.body.classList.toggle('no-scroll', open);
+  }
+
+  window.toggleMenu = () => set(!menu.classList.contains('open'));
+
+  // Close the menu when a link is tapped
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => set(false)));
+
+  // If resized back to desktop, ensure menu is closed and layout resets
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 860) set(false);
+  });
+})();
+</script>
 </body>
 </html>

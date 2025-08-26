@@ -98,6 +98,8 @@ nav a { color: var(--text); opacity: .95; font-weight: 700; text-shadow: 0 1px 2
       nav ul { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--panel); border-bottom: 2px solid color-mix(in oklab, var(--text) 10%, transparent); padding: 12px 18px; flex-direction: column; gap: 8px; }
 
 nav a.active { font-weight: bold; text-decoration: underline; }
+/* Optional: prevent body from scrolling when menu is open */
+body.no-scroll { overflow: hidden; }
 </style>
 </head>
 <body>
@@ -109,7 +111,7 @@ nav a.active { font-weight: bold; text-decoration: underline; }
       <span>Angers Lab<br/><small>Cellular Signaling &amp; Regeneration</small></span>
     </a>
     <nav>
-      <button class="menu-btn" aria-label="Open menu" onclick="toggleMenu()">☰</button>
+      <button class="menu-btn" aria-label="Open menu" onclick="toggleMenu()" aria-expanded="false">☰</button>
       <ul id="menu"><li><a href="index.html">Home</a></li>
 <li><a href="stephane-angers.html">Stephane Angers</a></li>
         <li><a href="research.html">Research</a></li>
@@ -443,7 +445,7 @@ nav a.active { font-weight: bold; text-decoration: underline; }
 </footer>
 
 <script>
-function toggleMenu(){ document.getElementById('menu').classList.toggle('open'); }
+
 
 // --- Live filter ---
 const filterInput = document.getElementById('pub-filter');
@@ -496,5 +498,29 @@ filterInput && filterInput.addEventListener('input', e => applyFilter(e.target.v
 })();
 </script>
 
+<script>
+(function () {
+  const btn  = document.querySelector('.menu-btn');
+  const menu = document.getElementById('menu');
+
+  if (!btn || !menu) return;
+
+  function set(open) {
+    menu.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', String(open));
+    document.body.classList.toggle('no-scroll', open);
+  }
+
+  window.toggleMenu = () => set(!menu.classList.contains('open'));
+
+  // Close the menu when a link is tapped
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => set(false)));
+
+  // If resized back to desktop, ensure menu is closed and layout resets
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 860) set(false);
+  });
+})();
+</script>
 </body>
 </html>
