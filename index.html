@@ -211,16 +211,19 @@ nav a.active { font-weight: bold; text-decoration: underline; }
 }
 #status { color:#6b7280; font-size:.9rem; }
 
-/* === Mobile navigation (hamburger) v2 === */
-.menu-btn{display:none;background:none;border:none;font-size:28px;line-height:1}
+/* === Mobile navigation (hamburger) v3 unified === */
+nav{display:flex;align-items:center;gap:16px}
+nav .brand{flex:0 0 auto}
+nav .menu-btn{display:none;background:none;border:none;font-size:28px;line-height:1}
+nav ul{list-style:none;margin:0;padding:0;display:flex;gap:18px}
 @media (max-width:860px){
-  nav{position:relative}
+  nav{position:relative;justify-content:flex-start}
   nav .menu-btn{display:block}
-  /* Hide any existing horizontal nav on mobile, unless opened */
-  nav ul{display:none !important; padding:12px 18px; margin:0; list-style:none; gap:10px; flex-direction:column; background:var(--panel); border-bottom:1px solid rgba(0,0,0,.08)}
-  nav ul.open{display:flex !important}
-  /* Make links full-width tappable targets */
-  nav ul.open li a{display:block; padding:8px 4px}
+  /* Hide menu by default on mobile */
+  nav ul{display:none !important;position:static;width:100%;padding:12px 18px;gap:10px;flex-direction:column;background:var(--panel, #fff);border-bottom:1px solid rgba(0,0,0,.08);box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  nav ul.open{display:flex !important;justify-content:center;align-items:center;text-align:center}
+  nav ul.open li{width:100%;text-align:center}
+  nav ul.open li a{display:block;padding:8px 6px}
 }
 </style>
 </head>
@@ -448,11 +451,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 </script>
 
 <script>
-// Mobile hamburger menu (v2 stronger)
+// Mobile hamburger menu (v3 unified)
 (function(){
   const nav = document.querySelector('nav');
   if(!nav) return;
   let btn = nav.querySelector('.menu-btn');
+  // Prefer an ul with id="menu"; else first UL inside nav
   let menu = nav.querySelector('ul#menu') || nav.querySelector('ul');
   if(!btn){
     btn = document.createElement('button');
@@ -465,18 +469,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   if(menu && !menu.id){ menu.id = 'menu'; }
   if(btn && menu){
-    btn.addEventListener('click', ()=>{
+    const toggle = ()=>{
       const open = menu.classList.toggle('open');
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    });
-    // Close after navigation
+    };
+    btn.addEventListener('click', toggle);
+    // Close after link navigation
     menu.querySelectorAll('a').forEach(a=>a.addEventListener('click', ()=>{
       if(menu.classList.contains('open')){
         menu.classList.remove('open');
         btn.setAttribute('aria-expanded','false');
       }
     }));
-    // Reset on desktop
+    // Reset on desktop breakpoint
     const reset = ()=>{
       if(window.innerWidth > 860){
         menu.classList.remove('open');
