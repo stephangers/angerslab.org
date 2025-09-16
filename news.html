@@ -139,27 +139,35 @@
         try { return new URL(url).host.replace(/^www\\./,''); } catch { return ''; }
       }
       function fmtDate(dstr){
-        const d = new Date(dstr);
-        if(!isFinite(d)) return '';
+        const d = new Date(dstr || '');
+        if(!(d instanceof Date) || isNaN(d.getTime())) return dstr || '';
         return d.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
       }
       function includesBioKeywords(text){
         const t = (text||'').toLowerCase();
         return KEYWORDS.some(k => t.includes(k));
       }
+      function normalizeNewsJson(obj){
+        if (Array.isArray(obj)) return obj;
+        if (obj && Array.isArray(obj.items)) return obj.items;
+        if (obj && Array.isArray(obj.data)) return obj.data;
+        if (obj && Array.isArray(obj.articles)) return obj.articles;
+        if (obj && typeof obj === 'object') {
+          const vals = Object.values(obj).filter(v => v && typeof v === 'object');
+          const maybe = vals.filter(v => ('title' in v) || ('link' in v));
+          if (maybe.length) return maybe;
+        }
+        return [];
+      }
 
       // Try a local JSON first if you opt to build it via GitHub Actions
       async function tryLocalJSON(){
-        const paths = ['assets/data/news.json','/assets/data/news.json','news.json','/news.json'];
-        for (const path of paths){
-          try{
-            const r = await fetch(path + (path.includes('?')?'':'?cb=' + Date.now()), {cache:'no-cache'});
-            if(!r.ok) continue;
-            const arr = await r.json();
-            if (Array.isArray(arr) && arr.length) return arr;
-          }catch{}
-        }
-        return [];
+        try{
+          const r = await fetch('assets/data/news.json', {cache:'no-cache'});
+          if(!r.ok) return [];
+          const arr = await r.json();
+          return Array.isArray(arr) ? arr : [];
+        }catch{ return []; }
       }
 
       async function fetchRSS(url){
@@ -199,20 +207,20 @@
 
       try {
         statusEl.textContent = 'Loading news…';
+        statusEl.title = '';
         let items = await tryLocalJSON();
-        let localUsed = items.length > 0;
-        if(!localUsed){
+        if(items.length === 0){
           items = await tryFeeds();
         }
 
-        // Deduplicate by link/title; apply biomedical filter only for live feeds
+        // Deduplicate by link/title and filter to biomedical context
         const seen = new Set();
         items = items.filter(it => {
-          const key = (it.link || it.title || '').trim();
+          const key = (it.link || it.title).trim();
           if(!key || seen.has(key)) return false;
           seen.add(key);
-          if(localUsed) return true; // trust curated local JSON
           const text = (it.title || '') + ' ' + (it.description || '');
+          // Must mention Stephane Angers and have biomedical hint
           const hasName = /stephane\\s+angers/i.test(text) || /stephane\\s+angers/i.test(it.link||'');
           return hasName && includesBioKeywords(text + ' ' + it.link);
         });
@@ -222,7 +230,7 @@
 
         listEl.textContent = '';
         if(items.length === 0){
-          statusEl.textContent = 'No news loaded. Ensure assets/data/news.json (or /news.json) exists and is accessible.';
+          statusEl.textContent = 'No recent biomedical news found. Try again later or add items to assets/data/news.json.';
           const p = document.createElement('p');
           p.className = 'empty';
           p.textContent = 'Tip: You can schedule a GitHub Action to write assets/data/news.json nightly from Google News/Yahoo queries for fully reliable updates.';
@@ -230,7 +238,7 @@
           return;
         }
 
-        statusEl.textContent = (localUsed ? 'Loaded from local JSON · ' : 'Loaded from live feeds · ') + 'Showing ' + items.length + ' result' + (items.length>1?'s':'');
+        statusEl.textContent = 'Showing ' + items.length + ' result' + (items.length>1?'s':'');
         for(const it of items){
           const art = document.createElement('article');
           art.className = 'news-card';
@@ -270,6 +278,7 @@
         }
       } catch (err){
         statusEl.textContent = 'Failed to load news: ' + err.message;
+        statusEl.title = (err && (err.stack || err.message)) || '';
       }
     })();
   </script>
