@@ -61,14 +61,21 @@ nav a.active { font-weight: bold; text-decoration: underline; }
 /* Optional: prevent body from scrolling when menu is open */
 body.no-scroll { overflow: hidden; }
 
-/* Research theme logos */
-.figure-img{
-  width:100%;
-  height:auto;
+
+/* Theme logo container: centers and contains logos without cropping */
+.figure{
   aspect-ratio:16/9;
-  object-fit:contain;
-  background:none;
   border-radius:14px;
+  background:none;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+}
+.figure > img{
+  max-width:92%;
+  max-height:92%;
+  width:auto;
+  height:auto;
   display:block;
 }
 
@@ -112,7 +119,7 @@ body.no-scroll { overflow: hidden; }
       <div class="grid">
         <!-- THEME 1 -->
         <article class="card theme">
-          <img src="assets/images/theme1_wnt_signaling.png" alt="Wnt receptor complex with downstream signaling arrows" class="figure-img" loading="lazy" width="1200" height="675" />
+          <div class="figure"><img src="assets/images/theme1_wnt_signaling.png" alt="Wnt receptor complex with downstream signaling arrows"></div>
           <h3>Theme 1 — Molecular Logic of Wnt Signaling</h3>
           <p class="summary">We study the Wnt pathway from receptor complex activation to nuclear output. Using cell biology, functional genomics and biochemical approaches. We defined how Dishevelled assemblies form at the membrane and correlate with pathway activation (<a href="publications.html#y-2020">PNAS 2020</a>), and uncovered an IPO11-dependent route for β-catenin nuclear import in a subset of colorectal cancers (<a href="publications.html#y-2020">J Cell Biol 2020</a>). We also analyze receptor–coreceptor usage (FZD/LRP5/6) and scaffolding dynamics to explain how 19 Wnts and 10 FZDs encode specificity. To precisely probe this code, we engineer receptor-selective Wnt surrogates, including tetravalent antibodies that potently and specifically activate Wnt/Frizzled signaling in cells, organoids, and mice (<a href="publications.html#y-2019">eLife 2019</a>), and Norrin/Wnt surrogates that enhance endothelial barrier function (<a href="publications.html#y-2021">EMBO Mol Med 2021</a>). For broader context, see our perspectives on Wnt pathway activation and therapeutic modulation (<a href="publications.html#y-2025">Nat Rev Mol Cell Biol 2025</a>; <a href="publications.html#y-2023">Trends Pharmacol Sci 2023</a>).</p>
           <div class="actions">
@@ -123,7 +130,7 @@ body.no-scroll { overflow: hidden; }
 
         <!-- THEME 2 -->
         <article class="card theme">
-          <img src="assets/images/theme2_wnt_therapies.png" alt="Receptor-specific Wnt modulation with syringe and organoid symbols" class="figure-img" loading="lazy" width="1200" height="675" />
+          <div class="figure"><img src="assets/images/theme2_wnt_therapies.png" alt="Receptor-specific Wnt modulation with syringe and organoid symbols"></div>
           <h3>Theme 2 — Receptor-Specific Wnt Modulation for Regeneration and Therapy</h3>
           <p class="summary">Our receptor-specific Wnt surrogate platform spans vascular biology, organ regeneration, and directed differentiation. <b>Vascular barrier repair:</b> FZD4-selective agonists restore blood–retina barrier integrity and rescue retinopathy phenotypes (<a href="publications.html#y-2021">EMBO Mol Med 2021</a>; <a href="publications.html#y-2023">iScience 2023</a>). <b>Lung regeneration:</b> FZD5/6-targeted agonists activate AT2 stem cells and drive alveolar repair while avoiding pro-fibrotic programs (<a href="publications.html#y-2023">Cell 2023</a>). <b>Liver regeneration:</b> single-cell/spatial transcriptomics uncovered a Wnt2/Wnt9b endothelial circuit controlling pericentral identity and regeneration, and receptor-specific agonism restores zonal Wnt activity to promote repair (<a href="publications.html#y-2022">Cell Rep Med 2022</a>). <b>Directed differentiation:</b> temporally tuned FZD5 activation enables efficient ventral midbrain dopaminergic neuron production (<a href="publications.html#y-2024">Development 2024</a>), while selective FZD2/7 activation biases mesoderm toward paraxial or lateral fates (<a href="publications.html#y-2025">Stem Cell Reports 2025</a>).</p>
           <div class="actions">
@@ -134,7 +141,7 @@ body.no-scroll { overflow: hidden; }
 
         <!-- THEME 3 -->
         <article class="card theme">
-          <img src="assets/images/theme3_GBM.png" alt="DNA helix and glioblastoma-like cell icon" class="figure-img" loading="lazy" width="1200" height="675" />
+          <div class="figure"><img src="assets/images/theme3_GBM.png" alt="DNA helix and glioblastoma-like cell icon"></div>
           <h3>Theme 3 — Functional Genomics of Glioblastoma Stem Cells</h3>
           <p class="summary">We map genetic dependencies and drug responses in patient-derived glioblastoma stem cells (GSCs) using genome-scale CRISPR. Early work exposed mechanisms of temozolomide sensitivity and resistance (<a href="publications.html#y-2019">Cell Reports 2019</a>) and charted a developmental ↔ injury-response state gradient that explains functional heterogeneity (<a href="publications.html#y-2021">Nat Cancer 2021</a>). Recent fitness screens identify state-specific vulnerabilities (e.g., transcription factors, chromatin regulators, cytokine modulators) and actionable chemogenetic interactions (<a href="publications.html#y-2024">Cancer Research 2024</a>). We also contribute methods for discovering resistance mechanisms with CRISPR-Cas9 platforms (<a href="publications.html#y-2022">Methods Mol Biol 2022</a>).</p>
           <div class="actions">
