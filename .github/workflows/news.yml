@@ -1,0 +1,35 @@
+name: Refresh news.json (Stephane Angers)
+
+on:
+  schedule:
+    - cron: "15 6 * * *"   # daily at 06:15 UTC (~02:15 Toronto most of the year)
+  workflow_dispatch:       # allow manual run from Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  build-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate assets/data/news.json
+        run: |
+          python scripts/build_news_json.py
+        env:
+          NEWS_JSON_PATH: assets/data/news.json
+
+      - name: Commit & push if changed
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(news): refresh assets/data/news.json"
+          commit_user_name: AngersLab Bot
+          commit_user_email: lab-bot@users.noreply.github.com
+          file_pattern: assets/data/news.json
