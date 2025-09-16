@@ -172,7 +172,7 @@
 
       async function fetchRSS(url){
         // Use r.jina.ai as a CORS-friendly proxy that returns raw feed text
-        const proxied = 'https://r.jina.ai/http://' + url.replace(/^https?:\\/\\//,'').replaceAll('&','&');
+        const proxied = 'https://r.jina.ai/http://' + url.replace(/^https?:\/\//,'').replaceAll('&','&');
         const res = await fetch(proxied, { cache: 'no-cache' });
         if(!res.ok) throw new Error('HTTP '+res.status);
         const xml = await res.text();
@@ -221,7 +221,7 @@
           seen.add(key);
           const text = (it.title || '') + ' ' + (it.description || '');
           // Must mention Stephane Angers and have biomedical hint
-          const hasName = /stephane\\s+angers/i.test(text) || /stephane\\s+angers/i.test(it.link||'');
+          const hasName = /stephane\s+angers/i.test(text) || /stephane\s+angers/i.test(it.link||'');
           return hasName && includesBioKeywords(text + ' ' + it.link);
         });
 
