@@ -150,12 +150,16 @@
 
       // Try a local JSON first if you opt to build it via GitHub Actions
       async function tryLocalJSON(){
-        try{
-          const r = await fetch('assets/data/news.json', {cache:'no-cache'});
-          if(!r.ok) return [];
-          const arr = await r.json();
-          return Array.isArray(arr) ? arr : [];
-        }catch{ return []; }
+        const paths = ['assets/data/news.json','/assets/data/news.json','news.json','/news.json'];
+        for (const path of paths){
+          try{
+            const r = await fetch(path + (path.includes('?')?'':'?cb=' + Date.now()), {cache:'no-cache'});
+            if(!r.ok) continue;
+            const arr = await r.json();
+            if (Array.isArray(arr) && arr.length) return arr;
+          }catch{}
+        }
+        return [];
       }
 
       async function fetchRSS(url){
@@ -196,18 +200,19 @@
       try {
         statusEl.textContent = 'Loading news…';
         let items = await tryLocalJSON();
-        if(items.length === 0){
+        let localUsed = items.length > 0;
+        if(!localUsed){
           items = await tryFeeds();
         }
 
-        // Deduplicate by link/title and filter to biomedical context
+        // Deduplicate by link/title; apply biomedical filter only for live feeds
         const seen = new Set();
         items = items.filter(it => {
-          const key = (it.link || it.title).trim();
+          const key = (it.link || it.title || '').trim();
           if(!key || seen.has(key)) return false;
           seen.add(key);
+          if(localUsed) return true; // trust curated local JSON
           const text = (it.title || '') + ' ' + (it.description || '');
-          // Must mention Stephane Angers and have biomedical hint
           const hasName = /stephane\\s+angers/i.test(text) || /stephane\\s+angers/i.test(it.link||'');
           return hasName && includesBioKeywords(text + ' ' + it.link);
         });
@@ -217,7 +222,7 @@
 
         listEl.textContent = '';
         if(items.length === 0){
-          statusEl.textContent = 'No recent biomedical news found. Try again later or add items to assets/data/news.json.';
+          statusEl.textContent = 'No news loaded. Ensure assets/data/news.json (or /news.json) exists and is accessible.';
           const p = document.createElement('p');
           p.className = 'empty';
           p.textContent = 'Tip: You can schedule a GitHub Action to write assets/data/news.json nightly from Google News/Yahoo queries for fully reliable updates.';
@@ -225,7 +230,7 @@
           return;
         }
 
-        statusEl.textContent = 'Showing ' + items.length + ' result' + (items.length>1?'s':'');
+        statusEl.textContent = (localUsed ? 'Loaded from local JSON · ' : 'Loaded from live feeds · ') + 'Showing ' + items.length + ' result' + (items.length>1?'s':'');
         for(const it of items){
           const art = document.createElement('article');
           art.className = 'news-card';
