@@ -457,6 +457,22 @@
         for(const candidate of candidates){
           if(typeof candidate === 'string' && candidate.trim()) return candidate.trim();
         }
+        const htmlSnippets = [item.description, item.summary, item.content, item.contentSnippet, item['content:encoded']];
+        for(const snippet of htmlSnippets){
+          if(typeof snippet !== 'string' || !snippet.trim()) continue;
+          try {
+            const parsed = new DOMParser().parseFromString(snippet, 'text/html');
+            const docImg = findDocumentImage(parsed);
+            if(docImg) return docImg;
+            const inlineImg = parsed.querySelector('img');
+            if(inlineImg){
+              const fromImg = bestFromImageElement(inlineImg);
+              if(fromImg) return fromImg;
+            }
+          } catch {
+            /* ignore snippet parse errors */
+          }
+        }
         return '';
       }
 
@@ -579,12 +595,96 @@
         const xml = await res.text();
         const doc = new DOMParser().parseFromString(xml, 'text/xml');
         const items = Array.from(doc.querySelectorAll('item'));
-        return items.map(it => ({
-          title: it.querySelector('title')?.textContent?.trim() || '',
-          link: it.querySelector('link')?.textContent?.trim() || '',
-          pubDate: it.querySelector('pubDate')?.textContent?.trim() || '',
-          source: (it.querySelector('source')?.textContent?.trim() || (it.querySelector('link')?.textContent ? new URL(it.querySelector('link').textContent).host.replace(/^www\./,'') : ''))
-        }));
+        function textContent(node, selector){
+          const found = node.querySelector(selector);
+          return found?.textContent?.trim() || '';
+        }
+        function attr(el, name){
+          if(!el) return '';
+          return (el.getAttribute(name) || '').trim();
+        }
+        function first(node, selectors){
+          for(const selector of selectors){
+            const match = node.querySelector(selector);
+            if(match) return match;
+          }
+          return null;
+        }
+        return items.map(it => {
+          const linkText = textContent(it, 'link');
+          const link = linkText.trim();
+          const host = link ? (() => { try { return new URL(link).host.replace(/^www\./,''); } catch { return ''; } })() : '';
+          const description = textContent(it, 'description');
+          const summary = textContent(it, 'summary');
+          const contentEncoded = textContent(it, 'content\\:encoded');
+          const enclosureEl = first(it, ['enclosure[url]', 'enclosure']);
+          const mediaContentEl = first(it, ['media\\:content[url]', 'media\\:group media\\:content[url]', 'media\\:content', 'media\\:group media\\:content']);
+          const mediaThumbEl = first(it, ['media\\:thumbnail[url]', 'media\\:group media\\:thumbnail[url]', 'media\\:thumbnail', 'media\\:group media\\:thumbnail']);
+          const imageNode = first(it, ['image url', 'image']);
+
+          const out = {
+            title: textContent(it, 'title'),
+            link,
+            pubDate: textContent(it, 'pubDate'),
+            source: textContent(it, 'source') || host,
+            description,
+            summary,
+            'content:encoded': contentEncoded
+          };
+
+          if(enclosureEl){
+            const enclosureUrl = attr(enclosureEl, 'url') || attr(enclosureEl, 'href');
+            if(enclosureUrl){
+              out.enclosure = {
+                url: enclosureUrl,
+                type: attr(enclosureEl, 'type'),
+                length: attr(enclosureEl, 'length')
+              };
+              if(!out.image && isLikelyImageUrl(enclosureUrl)){
+                out.image = enclosureUrl;
+              }
+            }
+          }
+
+          if(mediaContentEl){
+            const mediaUrl = attr(mediaContentEl, 'url') || attr(mediaContentEl, 'href');
+            if(mediaUrl){
+              const mediaObj = {
+                url: mediaUrl,
+                type: attr(mediaContentEl, 'type'),
+                medium: attr(mediaContentEl, 'medium'),
+                width: attr(mediaContentEl, 'width'),
+                height: attr(mediaContentEl, 'height')
+              };
+              out['media:content'] = mediaObj;
+              if(!out.image && (isLikelyImageUrl(mediaUrl) || /^image\//i.test(mediaObj.type) || /image/i.test(mediaObj.medium))){
+                out.image = mediaUrl;
+              }
+            }
+          }
+
+          if(mediaThumbEl){
+            const thumbUrl = attr(mediaThumbEl, 'url') || attr(mediaThumbEl, 'href');
+            if(thumbUrl){
+              const thumbObj = {
+                url: thumbUrl,
+                width: attr(mediaThumbEl, 'width'),
+                height: attr(mediaThumbEl, 'height')
+              };
+              out['media:thumbnail'] = thumbObj;
+              if(!out.thumbnail && isLikelyImageUrl(thumbUrl)){
+                out.thumbnail = thumbUrl;
+              }
+            }
+          }
+
+          if(imageNode){
+            const inline = textContent(imageNode, 'url') || imageNode.textContent?.trim() || '';
+            if(inline) out.image = out.image || inline;
+          }
+
+          return out;
+        });
       }
 
       async function tryFeeds(){
