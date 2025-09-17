@@ -164,6 +164,184 @@
         'meta[property="thumbnail"]',
         'link[rel="image_src"]'
       ];
+      const AGGREGATOR_HOST_PATTERNS = [
+        /(^|\.)news\.google\./i,
+        /(^|\.)news\.yahoo\./i,
+        /(^|\.)newssearch\.yahoo\./i,
+        /(^|\.)news\.search\.yahoo\./i,
+        /(^|\.)google\.com$/i
+      ];
+
+      function isLikelyImageUrl(url){
+        const trimmed = (url || '').trim();
+        if(!trimmed || /^data:/i.test(trimmed)) return false;
+        const normalized = trimmed.replace(/^https?:\/\//i, '').replace(/^\/\//, '').trim();
+        const bare = trimmed.split('?')[0].split('#')[0];
+        if(/\.(jpe?g|png|gif|bmp|webp|avif|heic|heif|svg)$/i.test(bare)) return true;
+        const query = trimmed.split('?')[1] || '';
+        if(/(format|width|height|quality|image|photo|media|thumb|webp|jpeg|jpg|png|img|size|crop|fit|url=|w=|h=)/i.test(query)) return true;
+        return /(image|photo|media|thumbnail|uploads|wp-content|cdn|static|assets|img)/i.test(normalized);
+      }
+
+      function chooseFromSrcset(value){
+        if(!value || typeof value !== 'string') return '';
+        const entries = value.split(',').map(part => {
+          const trimmed = part.trim();
+          if(!trimmed) return null;
+          const tokens = trimmed.split(/\s+/).filter(Boolean);
+          if(!tokens.length) return null;
+          const urlPart = tokens.shift();
+          let width = 0;
+          let density = 0;
+          tokens.forEach(token => {
+            if(token.endsWith('w')){
+              const parsed = parseInt(token, 10);
+              if(isFinite(parsed)) width = parsed;
+            } else if(token.endsWith('x')){
+              const parsed = parseFloat(token);
+              if(isFinite(parsed)) density = parsed;
+            }
+          });
+          return { url: (urlPart || '').trim(), width, density };
+        }).filter(entry => entry && entry.url && !/^data:/i.test(entry.url));
+        if(!entries.length) return '';
+        entries.sort((a, b) => {
+          if(a.width !== b.width) return b.width - a.width;
+          return b.density - a.density;
+        });
+        return entries[0]?.url || '';
+      }
+
+      function bestFromImageElement(el){
+        if(!el) return '';
+        const prioritizedAttrs = [
+          'data-original', 'data-src', 'data-srcset', 'data-large-image', 'data-lazy-src', 'data-highres', 'data-hires',
+          'data-img', 'data-image', 'data-photo', 'data-fullsrc', 'data-full-src', 'srcset', 'src'
+        ];
+        for(const attr of prioritizedAttrs){
+          const val = el.getAttribute(attr);
+          if(!val) continue;
+          if(attr.includes('srcset')){
+            const chosen = chooseFromSrcset(val);
+            if(chosen) return chosen;
+          } else {
+            const trimmed = val.trim();
+            if(trimmed && !/^data:/i.test(trimmed) && (attr === 'src' || isLikelyImageUrl(trimmed))) return trimmed;
+          }
+        }
+        if(el.dataset){
+          for(const key of Object.keys(el.dataset)){
+            if(/(src|image|photo|img)$/i.test(key)){
+              const val = el.dataset[key];
+              if(val && val.trim() && !/^data:/i.test(val)){
+                const trimmed = val.trim();
+                if(isLikelyImageUrl(trimmed) || /(^https?:|^\/\/)/i.test(trimmed) || trimmed.startsWith('/')) return trimmed;
+              }
+            }
+          }
+        }
+        return '';
+      }
+
+      function bestFromPicture(el){
+        if(!el) return '';
+        const sources = el.querySelectorAll('source[srcset], source[data-srcset]');
+        for(const source of sources){
+          const val = source.getAttribute('srcset') || source.getAttribute('data-srcset');
+          const chosen = chooseFromSrcset(val);
+          if(chosen) return chosen;
+        }
+        const img = el.querySelector('img');
+        if(img){
+          const fromImg = bestFromImageElement(img);
+          if(fromImg) return fromImg;
+        }
+        return '';
+      }
+
+      function gatherJsonLdImages(value, out){
+        if(!value) return;
+        if(typeof value === 'string'){
+          const trimmed = value.trim();
+          if(trimmed && !/^data:/i.test(trimmed) && isLikelyImageUrl(trimmed)) out.push(trimmed);
+          return;
+        }
+        if(Array.isArray(value)){
+          value.forEach(v => gatherJsonLdImages(v, out));
+          return;
+        }
+        if(typeof value === 'object'){
+          const keys = Object.keys(value);
+          for(const key of ['url','contentUrl','image','imageUrl','thumbnail','thumbnailUrl','logo','@id']){
+            if(key in value) gatherJsonLdImages(value[key], out);
+          }
+          for(const key of keys){
+            if(/image|thumbnail|logo/i.test(key)) gatherJsonLdImages(value[key], out);
+          }
+        }
+      }
+
+      function parseJsonLd(text){
+        if(!text) return [];
+        const trimmed = text.trim();
+        if(!trimmed) return [];
+        const attempts = [trimmed];
+        if(trimmed.startsWith('{') && /}\s*\n\s*{/.test(trimmed)){
+          attempts.push('[' + trimmed.replace(/}\s*\n\s*(?={)/g, '},{') + ']');
+        }
+        for(const attempt of attempts){
+          try{
+            const parsed = JSON.parse(attempt);
+            return Array.isArray(parsed) ? parsed : [parsed];
+          }catch{ /* ignore */ }
+        }
+        return [];
+      }
+
+      function findJsonLdImage(doc){
+        const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
+        for(const script of scripts){
+          const candidates = [];
+          const parsed = parseJsonLd(script.textContent || '');
+          parsed.forEach(node => gatherJsonLdImages(node, candidates));
+          const first = candidates.find(val => !!val && !/^data:/i.test(val) && isLikelyImageUrl(val));
+          if(first) return first;
+        }
+        return '';
+      }
+
+      function findDocumentImage(doc){
+        if(!doc) return '';
+        const selectors = [
+          'article picture', 'main picture', 'figure picture', 'picture',
+          'article img', 'main img', 'figure img', 'amp-img', 'img'
+        ];
+        for(const selector of selectors){
+          const node = doc.querySelector(selector);
+          if(!node) continue;
+          const picture = node.tagName && node.tagName.toLowerCase() === 'picture'
+            ? node
+            : (typeof node.closest === 'function' ? node.closest('picture') : null);
+          if(picture){
+            const fromPicture = bestFromPicture(picture);
+            if(fromPicture) return fromPicture;
+          }
+          if(node.tagName && node.tagName.toLowerCase() === 'amp-img'){
+            const amp = node.getAttribute('src') || node.getAttribute('data-src');
+            if(amp && amp.trim() && !/^data:/i.test(amp) && (isLikelyImageUrl(amp) || /(^https?:|^\/\/)/i.test(amp) || amp.trim().startsWith('/'))){
+              return amp.trim();
+            }
+          }
+          const fromImg = bestFromImageElement(node);
+          if(fromImg) return fromImg;
+        }
+        const preload = doc.querySelector('link[rel="preload"][as="image"], link[rel="prefetch"][as="image"]');
+        if(preload){
+          const href = preload.getAttribute('href');
+          if(href && href.trim() && !/^data:/i.test(href) && isLikelyImageUrl(href)) return href.trim();
+        }
+        return '';
+      }
 
       function toProxyURL(url){
         if(!url) return '';
@@ -187,6 +365,14 @@
 
       function hostFrom(url){
         try { return new URL(url).host.replace(/^www\\./,''); } catch { return ''; }
+      }
+      function isAggregatorUrl(url){
+        try {
+          const host = new URL(url).host;
+          return AGGREGATOR_HOST_PATTERNS.some(re => re.test(host));
+        } catch {
+          return false;
+        }
       }
       function fmtDate(dstr){
         const d = new Date(dstr || '');
@@ -217,6 +403,67 @@
         } catch {
           return '';
         }
+      }
+      function preferExternalArticleUrl(value, original){
+        const resolved = resolveUrlMaybe(value, original);
+        if(!resolved || resolved === original) return '';
+        let parsed = null;
+        try {
+          parsed = new URL(resolved);
+        } catch {
+          parsed = null;
+        }
+        if(parsed){
+          const nestedParam = parsed.searchParams.get('url') || parsed.searchParams.get('u') || parsed.searchParams.get('target') || parsed.searchParams.get('dest');
+          if(nestedParam){
+            const nested = resolveUrlMaybe(nestedParam, original);
+            if(nested && !isAggregatorUrl(nested) && !isLikelyImageUrl(nested)) return nested;
+          }
+        }
+        if(isAggregatorUrl(resolved) || isLikelyImageUrl(resolved)) return '';
+        return resolved;
+      }
+      function extractRedirectUrl(doc, originalLink, html){
+        if(!doc) return '';
+        const tryUrl = value => preferExternalArticleUrl(value, originalLink);
+        const refresh = doc.querySelector('meta[http-equiv="refresh" i]');
+        if(refresh){
+          const content = refresh.getAttribute('content') || '';
+          const match = content.match(/url=([^;]+)/i);
+          if(match){
+            const candidate = tryUrl(match[1].trim().replace(/^['"]|['"]$/g, ''));
+            if(candidate) return candidate;
+          }
+        }
+        const canonical = doc.querySelector('link[rel="canonical"]');
+        if(canonical){
+          const candidate = tryUrl(canonical.getAttribute('href'));
+          if(candidate) return candidate;
+        }
+        const ogUrl = doc.querySelector('meta[property="og:url"], meta[name="og:url"]');
+        if(ogUrl){
+          const candidate = tryUrl(ogUrl.getAttribute('content'));
+          if(candidate) return candidate;
+        }
+        const alt = doc.querySelector('link[rel="alternate"][href]');
+        if(alt){
+          const candidate = tryUrl(alt.getAttribute('href'));
+          if(candidate) return candidate;
+        }
+        const anchors = doc.querySelectorAll('a[href]');
+        for(const anchor of anchors){
+          const candidate = tryUrl(anchor.getAttribute('href'));
+          if(candidate) return candidate;
+        }
+        if(typeof html === 'string' && html){
+          const matches = html.match(/https?:\/\/[^"'\s<>]+/g) || [];
+          for(const raw of matches){
+            const cleaned = raw.replace(/&amp;/g, '&');
+            const candidate = tryUrl(cleaned);
+            if(candidate) return candidate;
+          }
+        }
+        return '';
       }
       function directImageFromItem(item){
         if(!item || typeof item !== 'object') return '';
@@ -262,6 +509,7 @@
         img.alt = '';
         img.loading = 'lazy';
         img.decoding = 'async';
+        img.referrerPolicy = 'no-referrer';
         img.src = resolved;
         el.appendChild(img);
         img.addEventListener('load', () => {
@@ -294,19 +542,39 @@
         }
         return '';
       }
-      async function discoverPreview(link){
+      async function discoverPreview(link, visited){
         if(!link) return '';
+        const seen = visited || new Set();
+        if(seen.has(link)) return '';
+        seen.add(link);
         try{
           const res = await proxyFetch(link);
           if(!res.ok) throw new Error('HTTP '+res.status);
           const html = await res.text();
           const doc = new DOMParser().parseFromString(html, 'text/html');
+          const candidates = [];
           const meta = findMetaImage(doc);
-          if(meta) return resolveUrlMaybe(meta, link);
-          const imgEl = doc.querySelector('article img[src], main img[src], figure img[src], img[src]');
-          if(imgEl){
-            const val = imgEl.getAttribute('src') || imgEl.getAttribute('data-src');
-            if(val && val.trim()) return resolveUrlMaybe(val.trim(), link);
+          if(meta){
+            const resolved = resolveUrlMaybe(meta, link);
+            if(resolved) candidates.push(resolved);
+          }
+          const jsonLd = findJsonLdImage(doc);
+          if(jsonLd){
+            const resolved = resolveUrlMaybe(jsonLd, link);
+            if(resolved) candidates.push(resolved);
+          }
+          const docImage = findDocumentImage(doc);
+          if(docImage){
+            const resolved = resolveUrlMaybe(docImage, link);
+            if(resolved) candidates.push(resolved);
+          }
+          const redirect = extractRedirectUrl(doc, link, html);
+          if(redirect && !seen.has(redirect)){
+            const redirected = await discoverPreview(redirect, seen);
+            if(redirected) return redirected;
+          }
+          for(const candidate of candidates){
+            if(candidate) return candidate;
           }
         }catch(err){
           console.warn('Preview image fetch failed', link, err);
@@ -316,7 +584,7 @@
       function getPreviewImage(link){
         if(!link) return Promise.resolve('');
         if(PREVIEW_CACHE.has(link)) return PREVIEW_CACHE.get(link);
-        const promise = discoverPreview(link).then(src => src || '').catch(() => '');
+        const promise = discoverPreview(link, new Set()).then(src => src || '').catch(() => '');
         PREVIEW_CACHE.set(link, promise);
         return promise;
       }
@@ -457,24 +725,28 @@
 
           const baseUrl = it.link || document.baseURI;
           const inlineImage = directImageFromItem(it);
-          const loadFromArticle = () => {
-            if(!it.link){
+          const showInlineFallback = (noLink = false) => {
+            if(noLink){
               showNoPreview(preview, 'No link available');
               return;
             }
+            if(inlineImage){
+              const ok = displayPreviewImage(preview, inlineImage, baseUrl, () => showNoPreview(preview));
+              if(!ok){
+                showNoPreview(preview);
+              }
+            } else {
+              showNoPreview(preview);
+            }
+          };
+          if(it.link){
             ensureThumbFallback(preview, 'Loading preview…');
             getPreviewImage(it.link).then(src => {
-              if(src && displayPreviewImage(preview, src, baseUrl)) return;
-              showNoPreview(preview);
+              if(src && displayPreviewImage(preview, src, it.link, showInlineFallback)) return;
+              showInlineFallback();
             });
-          };
-          if(inlineImage){
-            const success = displayPreviewImage(preview, inlineImage, baseUrl, loadFromArticle);
-            if(!success){
-              loadFromArticle();
-            }
           } else {
-            loadFromArticle();
+            showInlineFallback(true);
           }
         }
       } catch (err){
