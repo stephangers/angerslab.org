@@ -1,26 +1,60 @@
 #!/usr/bin/env python3
 """
 Builds assets/data/news.json by aggregating RSS from Google News and Yahoo News
-for "Stephane Angers" in a biomedical context. Pure-stdlib (urllib + xml.etree).
+for Stephane Angers, his lab, and affiliated biotech stories in a biomedical
+context. Pure-stdlib (urllib + xml.etree).
 """
 import sys, os, json, re, datetime, email.utils, urllib.request, urllib.error
 import xml.etree.ElementTree as ET
-from urllib.parse import quote
+from urllib.parse import quote, urlparse, parse_qs
 
 OUT_PATH = os.environ.get("NEWS_JSON_PATH", "assets/data/news.json")
 
-QUERY = '"Stephane Angers" (biomedical OR Wnt OR Frizzled OR "beta-catenin" OR cancer OR regeneration OR signaling OR "Donnelly Centre" OR Toronto)'
-FEEDS = [
-    # Google News RSS (Canada/English)
-    f'https://news.google.com/rss/search?q={quote(QUERY)}&hl=en-CA&gl=CA&ceid=CA:en',
-    # Yahoo News RSS
-    f'https://news.search.yahoo.com/rss?p={quote(QUERY)}'
+SEARCH_QUERIES = [
+    '"Stephane Angers" (biomedical OR Wnt OR Frizzled OR "beta-catenin" OR cancer OR regeneration OR signaling OR "Donnelly Centre" OR Toronto)',
+    '"Stéphane Angers" OR "Angers Lab" OR "Angers Laboratory"',
+    '"Donnelly Centre" (Toronto OR "University of Toronto" OR researchers)',
+    '"University of Toronto" (neurogenesis OR "Parkinson\'s disease" OR dopaminergic OR medulloblastoma OR retinopathy)',
+    '"Antlera" OR "AntlerA" OR "Antlera Therapeutics"',
+    '"EyeBio" OR (Merck AND EyeBio) OR (Merck AND "eye disease")',
+    '"Regor" (Therapeutics OR CDK OR Roche OR Genentech)'
 ]
 
-KEYWORDS = [
-    'wnt','frizzled','β-catenin','beta-catenin','cancer','regeneration','glioblastoma',
-    'signaling','donnelly','university of toronto','endothelial','barrier','surrogate','agonist'
+FEED_TEMPLATES = [
+    # Google News RSS (Canada/English)
+    lambda query: f'https://news.google.com/rss/search?q={quote(query)}&hl=en-CA&gl=CA&ceid=CA:en',
+    # Yahoo News RSS
+    lambda query: f'https://news.search.yahoo.com/rss?p={quote(query)}'
 ]
+
+TOPIC_KEYWORDS = [
+    'wnt','frizzled','β-catenin','beta-catenin','cancer','regeneration','regenerative','glioblastoma',
+    'signaling','donnelly','endothelial','barrier','surrogate','agonist',
+    'medulloblastoma','radiation','therapeutic','therapy','neurogenesis','parkinson','dopaminergic',
+    'dopamine','retinopathy','retina','retinal','ophthalmology','antibody','stem cell','neurons','neural',
+    'antlera','eyebio','regor','cdk','biotech','spinout','genentech','roche','eye disease'
+]
+
+AFFILIATIONS = [
+    'stephane angers','stéphane angers','stephane-angers',
+    'angers lab','angers laboratory','angers\' lab','angers’ lab',
+    'donnelly centre','donnelly center','temerty','medicine by design',
+    'university of toronto','u of t','université de toronto',
+    'toronto researchers','antlera','eyebio','regor','centre donnelly'
+]
+
+TRUSTED_HOSTS = {
+    'temertymedicine.utoronto.ca',
+    'utoronto.ca',
+    'medicalxpress.com',
+    'drugtargetreview.com',
+    'prnewswire.com',
+    'bioprocessintl.com',
+    'fiercebiotech.com',
+    'biospace.com',
+    'endpoints.news',
+    'metroquebec.com'
+}
 
 def fetch(url, timeout=30):
     req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (AngersLab NewsBot)'})
@@ -74,53 +108,78 @@ def parse_date(dstr):
     except Exception:
         return None
 
-def includes_bio_keywords(text):
+def includes_topic_keywords(text):
     t = (text or '').lower()
-    return any(k in t for k in KEYWORDS)
+    return any(k in t for k in TOPIC_KEYWORDS)
 
-def has_name(text):
-    return re.search(r'\bstephane\s+angers\b', (text or ''), flags=re.IGNORECASE) is not None
+def has_affiliation(text, host=''):
+    t = (text or '').lower()
+    if any(token in t for token in AFFILIATIONS):
+        return True
+    host_norm = host_from(host)
+    return host_norm in TRUSTED_HOSTS if host_norm else False
 
 def host_from(url):
     try:
-        from urllib.parse import urlparse
-        net = urlparse(url).netloc
-        return net[4:] if net.startswith('www.') else net
+        net = urlparse(url).netloc.lower()
+        net = net[4:] if net.startswith('www.') else net
+        return net
     except Exception:
         return ''
 
+def clean_link(url):
+    if not url:
+        return ''
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        return url
+    netloc = parsed.netloc.lower()
+    if netloc.endswith('news.google.com') or netloc.endswith('news.yahoo.com'):
+        qs = parse_qs(parsed.query)
+        target = qs.get('url')
+        if target:
+            return target[0]
+    return url
+
 def main():
     all_items = []
-    for url in FEEDS:
-        try:
-            xml = fetch(url)
-            items = parse_rss(xml)
-            all_items.extend(items)
-        except urllib.error.HTTPError as e:
-            print(f"[warn] HTTP error {e.code} for {url}", file=sys.stderr)
-        except Exception as e:
-            print(f"[warn] failed {url}: {e}", file=sys.stderr)
+    for query in SEARCH_QUERIES:
+        for feed_builder in FEED_TEMPLATES:
+            url = feed_builder(query)
+            try:
+                xml = fetch(url)
+                items = parse_rss(xml)
+                all_items.extend(items)
+            except urllib.error.HTTPError as e:
+                print(f"[warn] HTTP error {e.code} for {url}", file=sys.stderr)
+            except Exception as e:
+                print(f"[warn] failed {url}: {e}", file=sys.stderr)
 
-    # Filter: must mention Stephane Angers and be biomedical-ish
+    # Filter for affiliation plus relevant biomedical/biotech keywords
     filtered = []
     seen = set()
     for it in all_items:
-        text = ' '.join([it.get('title',''), it.get('description',''), it.get('link','')])
-        if not has_name(text):
+        raw_link = (it.get('link','') or '').strip()
+        link = clean_link(raw_link)
+        source_text = it.get('source','') or ''
+        text = ' '.join([it.get('title',''), it.get('description',''), link or raw_link, source_text])
+        host = host_from(link or raw_link)
+        if not has_affiliation(text, host):
             continue
-        if not includes_bio_keywords(text):
+        if not includes_topic_keywords(text):
             continue
-        key = (it.get('link') or it.get('title') or '').strip()
+        key = link or (it.get('title') or '').strip()
         if not key or key in seen:
             continue
         seen.add(key)
 
         dt = parse_date(it.get('pubDate',''))
         iso = dt.isoformat() if dt else ''
-        source = it.get('source') or host_from(it.get('link',''))
+        source = source_text or host_from(link) or host_from(raw_link)
         filtered.append({
             'title': it.get('title','').strip() or '(untitled)',
-            'link': it.get('link','').strip(),
+            'link': link or raw_link,
             'pubDate': iso,
             'source': source or ''
         })
