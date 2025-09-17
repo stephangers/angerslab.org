@@ -37,7 +37,20 @@
     /* News list */
     main{padding:clamp(24px,5vw,48px) 0}
     .news-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(12px,2vw,20px)}
-    .news-card{grid-column:span 12;background:var(--panel);border:1px solid color-mix(in oklab, var(--text) 10%, transparent);border-radius:18px;padding:16px;box-shadow:var(--shadow);display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+    .news-card{grid-column:span 12;background:var(--panel);border:1px solid color-mix(in oklab, var(--text) 10%, transparent);border-radius:18px;padding:16px;box-shadow:var(--shadow);display:grid;grid-template-columns:minmax(0,1fr) clamp(180px,25vw,240px);gap:clamp(14px,3vw,22px);align-items:stretch}
+    .news-main{display:flex;flex-direction:column;gap:10px;min-width:0}
+    .news-aside{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+    .news-thumb{width:100%;aspect-ratio:16/9;display:grid;place-items:center;border-radius:14px;overflow:hidden;background:color-mix(in oklab, var(--text) 6%, transparent);box-shadow:inset 0 0 0 1px color-mix(in oklab, var(--text) 8%, transparent);color:var(--muted);text-align:center;font-size:.85rem;padding:8px;position:relative;text-decoration:none;font-weight:600}
+    .news-thumb:hover{text-decoration:none}
+    .news-thumb img{grid-area:1/1;width:100%;height:100%;object-fit:cover}
+    .news-thumb__fallback{grid-area:1/1;padding:0 6px}
+    .news-thumb.has-image{color:transparent;background:color-mix(in oklab, var(--text) 4%, transparent)}
+    .news-thumb.has-image .news-thumb__fallback{display:none}
+    .news-thumb.is-empty{color:var(--muted)}
+    .news-aside .news-actions{justify-content:flex-end;width:100%}
+    @media (max-width:900px){ .news-card{grid-template-columns:minmax(0,1fr) clamp(160px,32vw,220px);} }
+    @media (max-width:720px){ .news-card{grid-template-columns:1fr} .news-aside{flex-direction:row;align-items:center;justify-content:space-between} .news-thumb{width:clamp(140px,42vw,220px)} .news-aside .news-actions{justify-content:flex-end} }
+    @media (max-width:560px){ .news-aside{flex-direction:column;align-items:flex-start;gap:10px} .news-thumb{width:100%} .news-aside .news-actions{width:100%;justify-content:flex-start} }
     .news-card h3{margin:0 0 4px;font-size:18px}
     .news-meta{color:var(--muted);font-size:.95rem}
     .news-actions{display:flex;gap:10px;flex-wrap:wrap}
@@ -135,6 +148,68 @@
         'wnt','frizzled','β-catenin','beta-catenin','cancer','regeneration','glioblastoma','signaling','donnelly','university of toronto','fgf','surrogate','agonist','endothelial','barrier'
       ];
 
+      const PREVIEW_CACHE = new Map();
+      const PREVIEW_META_SELECTORS = [
+        'meta[property="og:image:secure_url"]',
+        'meta[property="og:image:url"]',
+        'meta[property="og:image"]',
+        'meta[name="og:image"]',
+        'meta[property="twitter:image:src"]',
+        'meta[name="twitter:image:src"]',
+        'meta[property="twitter:image"]',
+        'meta[name="twitter:image"]',
+        'meta[property="article:image"]',
+        'meta[name="image"]',
+        'meta[name="thumbnail"]',
+        'meta[property="thumbnail"]',
+        'link[rel="image_src"]'
+      ];
+
+      function toProxyURL(url){
+        if(!url) return '';
+        const raw = String(url).trim();
+        if(!raw) return '';
+        try {
+          const parsed = new URL(raw, document.baseURI);
+          if(parsed.protocol === 'http:' || parsed.protocol === 'https:'){
+            return 'https://r.jina.ai/' + parsed.href;
+          }
+        } catch {
+          if(raw.startsWith('//')){
+            return 'https://r.jina.ai/https:' + raw;
+          }
+          if(/^[^:\s]+(\.[^:\s]+)+/.test(raw)){
+            return 'https://r.jina.ai/https://' + raw;
+          }
+        }
+        return '';
+      }
+      function stripProxyURL(url){
+        if(!url) return '';
+        try {
+          const parsed = new URL(url, document.baseURI);
+          if(parsed.hostname !== 'r.jina.ai') return parsed.href;
+          const rawPath = parsed.pathname.replace(/^\/+/, '');
+          let decoded = rawPath;
+          try {
+            decoded = decodeURIComponent(rawPath);
+          } catch {}
+          if(/^https?:\/\//i.test(decoded)){
+            return decoded.replace(/^(https?):\/(?!\/)/i, '$1://') + (parsed.search || '') + (parsed.hash || '');
+          }
+          if(decoded.startsWith('//')){
+            return 'https:' + decoded + (parsed.search || '') + (parsed.hash || '');
+          }
+        } catch {}
+        return '';
+      }
+      function proxyFetch(url, init){
+        const proxied = toProxyURL(url);
+        if(!proxied) return Promise.reject(new Error('Invalid URL'));
+        const opts = Object.assign({ cache:'no-cache' }, init || {});
+        return fetch(proxied, opts);
+      }
+
       function hostFrom(url){
         try { return new URL(url).host.replace(/^www\\./,''); } catch { return ''; }
       }
@@ -160,6 +235,296 @@
         return [];
       }
 
+      function resolveUrlMaybe(value, base){
+        if(!value) return '';
+        try {
+          return new URL(value, base || undefined).href;
+        } catch {
+          return '';
+        }
+      }
+      function directImageFromItem(item){
+        if(!item || typeof item !== 'object') return '';
+        const candidates = [
+          item.image,
+          item.imageUrl,
+          item.urlToImage,
+          item.thumbnail,
+          item.thumbnailUrl,
+          item.image_link,
+          item.imageLink,
+          item.picture,
+          item.enclosure && (typeof item.enclosure === 'string' ? item.enclosure : item.enclosure.url || item.enclosure.link),
+          item.media && (item.media.url || item.media.image),
+          item['media:content'] && (item['media:content'].url || item['media:content'].href),
+          item['media:thumbnail'] && item['media:thumbnail'].url
+        ];
+        for(const candidate of candidates){
+          if(typeof candidate === 'string' && candidate.trim()) return candidate.trim();
+        }
+        return '';
+      }
+      function ensureThumbFallback(el, text){
+        if(!el) return null;
+        let fallback = el.querySelector('.news-thumb__fallback');
+        if(!fallback){
+          fallback = document.createElement('span');
+          fallback.className = 'news-thumb__fallback';
+          el.appendChild(fallback);
+        }
+        if(typeof text === 'string') fallback.textContent = text;
+        return fallback;
+      }
+      function displayPreviewImage(el, src, base, onError){
+        if(!el) return false;
+        const resolved = resolveUrlMaybe(src, base || document.baseURI);
+        if(!resolved) return false;
+        ensureThumbFallback(el, 'Loading preview…');
+        Array.from(el.querySelectorAll('img')).forEach(img => img.remove());
+        el.classList.remove('is-empty');
+        el.classList.remove('has-image');
+        const img = document.createElement('img');
+        img.alt = '';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.referrerPolicy = 'no-referrer';
+        img.src = resolved;
+        el.appendChild(img);
+        img.addEventListener('load', () => {
+          el.classList.add('has-image');
+        }, { once:true });
+        img.addEventListener('error', () => {
+          img.remove();
+          el.classList.remove('has-image');
+          el.classList.add('is-empty');
+          ensureThumbFallback(el, 'Preview unavailable');
+          if(typeof onError === 'function') onError();
+        }, { once:true });
+        return true;
+      }
+      function showNoPreview(el, text){
+        if(!el) return;
+        Array.from(el.querySelectorAll('img')).forEach(img => img.remove());
+        el.classList.remove('has-image');
+        el.classList.add('is-empty');
+        ensureThumbFallback(el, text || 'Preview unavailable');
+      }
+      function findMetaImage(doc){
+        if(!doc) return '';
+        for(const selector of PREVIEW_META_SELECTORS){
+          const node = doc.querySelector(selector);
+          if(!node) continue;
+          const attr = selector.startsWith('link') ? 'href' : 'content';
+          const value = node.getAttribute(attr);
+          if(value && value.trim()) return value.trim();
+        }
+        return '';
+      }
+      function isAggregatorHost(host){
+        if(!host) return false;
+        return /(^|\.)news\.google\./i.test(host) || /(^|\.)news\.yahoo\./i.test(host) || /(^|\.)news\.search\.yahoo\./i.test(host);
+      }
+      function parseSrcsetValue(value){
+        if(!value) return '';
+        const parts = value.split(',');
+        for(const part of parts){
+          const trimmed = part.trim();
+          if(!trimmed) continue;
+          const candidate = trimmed.split(/\s+/)[0];
+          if(candidate) return candidate;
+        }
+        return '';
+      }
+      function readNumericAttr(node, names){
+        if(!node || typeof node.getAttribute !== 'function') return 0;
+        for(const name of names){
+          const raw = node.getAttribute(name);
+          if(!raw) continue;
+          const num = parseInt(raw, 10);
+          if(!Number.isNaN(num) && isFinite(num)) return num;
+        }
+        return 0;
+      }
+      function imageCandidatesFromNode(node){
+        if(!node || typeof node.getAttribute !== 'function') return [];
+        const results = [];
+        const push = (val) => {
+          const trimmed = (val || '').trim();
+          if(trimmed) results.push(trimmed);
+        };
+        push(node.getAttribute('src'));
+        const attrs = ['data-src','data-original','data-lazy-src','data-lazyload','data-srcset','data-fallback-src','data-hi-res-src','data-zoom-src','data-image','data-image-src','data-defer-src'];
+        for(const attr of attrs){
+          const value = node.getAttribute(attr);
+          if(!value) continue;
+          if(attr.includes('srcset')) push(parseSrcsetValue(value));
+          else push(value);
+        }
+        const srcset = node.getAttribute('srcset');
+        if(srcset) push(parseSrcsetValue(srcset));
+        if(node.parentElement && node.parentElement.tagName && node.parentElement.tagName.toLowerCase() === 'picture'){
+          node.parentElement.querySelectorAll('source[srcset], source[data-srcset]').forEach(source => {
+            const val = source.getAttribute('srcset') || source.getAttribute('data-srcset');
+            if(val) push(parseSrcsetValue(val));
+          });
+        }
+        const unique = [];
+        const seen = new Set();
+        for(const candidate of results){
+          if(!candidate || seen.has(candidate)) continue;
+          seen.add(candidate);
+          unique.push(candidate);
+        }
+        return unique;
+      }
+      function isLikelyContentImage(candidate, node){
+        if(!candidate) return false;
+        const lower = candidate.toLowerCase();
+        if(lower.startsWith('data:')) return false;
+        if(lower.startsWith('javascript:')) return false;
+        if(/\b(transparent|spacer|pixel|spinner|loading)\b/.test(lower)) return false;
+        const width = readNumericAttr(node, ['width','data-width','data-original-width','data-w','data-img-width']);
+        const height = readNumericAttr(node, ['height','data-height','data-original-height','data-h','data-img-height']);
+        if(width && height && width <= 64 && height <= 64) return false;
+        const cls = (node && typeof node.getAttribute === 'function' ? node.getAttribute('class') : '') || '';
+        const alt = (node && typeof node.getAttribute === 'function' ? node.getAttribute('alt') : '') || '';
+        const info = (cls + ' ' + alt).toLowerCase();
+        if((width && width <= 160) || (height && height <= 120)){
+          if(/\b(icon|logo|avatar|profile)\b/.test(info) || /\b(icon|logo|avatar|profile)\b/.test(lower)) return false;
+        }
+        if(/\bplaceholder\b/.test(info)) return false;
+        return true;
+      }
+      function findAlternateArticleLink(doc, baseUrl, baseHost){
+        if(!doc) return '';
+        const tryResolve = (value) => resolveUrlMaybe(value, baseUrl);
+        const refresh = doc.querySelector('meta[http-equiv="refresh"], meta[http-equiv="Refresh"]');
+        if(refresh){
+          const content = refresh.getAttribute('content') || '';
+          const parts = content.split(';');
+          for(const part of parts){
+            const trimmed = part.trim();
+            if(/^url=/i.test(trimmed)){
+              const candidate = tryResolve(trimmed.replace(/^url=/i, ''));
+              if(candidate && candidate !== baseUrl) return candidate;
+            }
+          }
+        }
+        const metaSelectors = ['meta[property="og:url"]','meta[name="og:url"]','meta[property="al:web:url"]','meta[property="al:ios:url"]','meta[property="al:android:url"]'];
+        for(const selector of metaSelectors){
+          const el = doc.querySelector(selector);
+          if(!el) continue;
+          const candidate = tryResolve(el.getAttribute('content'));
+          if(!candidate || candidate === baseUrl) continue;
+          const host = hostFrom(candidate);
+          if(!baseHost || host !== baseHost || isAggregatorHost(baseHost)) return candidate;
+        }
+        const canonical = doc.querySelector('link[rel="canonical"]');
+        if(canonical){
+          const candidate = tryResolve(canonical.getAttribute('href'));
+          if(candidate && candidate !== baseUrl){
+            const host = hostFrom(candidate);
+            if(!baseHost || host !== baseHost || isAggregatorHost(baseHost)) return candidate;
+          }
+        }
+        if(baseHost && isAggregatorHost(baseHost)){
+          const anchors = Array.from(doc.querySelectorAll('a[href]'));
+          for(const anchor of anchors){
+            const href = anchor.getAttribute('href');
+            if(!href) continue;
+            const candidate = tryResolve(href);
+            if(!candidate || candidate === baseUrl) continue;
+            if(/^javascript:/i.test(candidate) || /^mailto:/i.test(candidate)) continue;
+            const host = hostFrom(candidate);
+            if(!host) continue;
+            if(isAggregatorHost(host)){
+              if(candidate !== baseUrl){
+                try {
+                  const parsed = new URL(candidate);
+                  if(/\/articles\//.test(parsed.pathname || '')) return candidate;
+                } catch {}
+              }
+              continue;
+            }
+            return candidate;
+          }
+        }
+        return '';
+      }
+      function findInlineImage(doc, baseUrl){
+        if(!doc) return '';
+        const seen = new Set();
+        const selectors = ['article img','main img','figure img','img'];
+        for(const selector of selectors){
+          const nodes = Array.from(doc.querySelectorAll(selector));
+          for(const node of nodes){
+            const candidates = imageCandidatesFromNode(node);
+            for(const candidate of candidates){
+              if(!candidate || seen.has(candidate)) continue;
+              seen.add(candidate);
+              if(!isLikelyContentImage(candidate, node)) continue;
+              const resolved = resolveUrlMaybe(candidate, baseUrl);
+              if(resolved) return resolved;
+            }
+          }
+        }
+        const sourceNodes = Array.from(doc.querySelectorAll('source[srcset], source[data-srcset]'));
+        for(const node of sourceNodes){
+          const candidates = imageCandidatesFromNode(node);
+          for(const candidate of candidates){
+            if(!candidate || seen.has(candidate)) continue;
+            seen.add(candidate);
+            if(!isLikelyContentImage(candidate, node)) continue;
+            const resolved = resolveUrlMaybe(candidate, baseUrl);
+            if(resolved) return resolved;
+          }
+        }
+        return '';
+      }
+      async function discoverPreview(link, depth, visited){
+        const level = typeof depth === 'number' ? depth : 0;
+        const seen = visited || new Set();
+        const normalized = String(link || '').trim();
+        if(!normalized || seen.has(normalized) || level >= 4) return '';
+        seen.add(normalized);
+        try{
+          const res = await proxyFetch(normalized);
+          if(!res.ok) throw new Error('HTTP '+res.status);
+          const finalUrl = stripProxyURL(res.url) || normalized;
+          const finalKey = String(finalUrl || '').trim();
+          if(finalKey && !seen.has(finalKey)) seen.add(finalKey);
+          const html = await res.text();
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const baseHost = hostFrom(finalUrl);
+          const meta = findMetaImage(doc);
+          const metaResolved = meta ? resolveUrlMaybe(meta, finalUrl) : '';
+          if(metaResolved && !isAggregatorHost(baseHost)){
+            return metaResolved;
+          }
+          const altLink = findAlternateArticleLink(doc, finalUrl, baseHost);
+          if(altLink){
+            const altNormalized = String(altLink).trim();
+            if(altNormalized && !seen.has(altNormalized)){
+              const nested = await discoverPreview(altNormalized, level + 1, seen);
+              if(nested) return nested;
+            }
+          }
+          const inline = findInlineImage(doc, finalUrl);
+          if(inline) return inline;
+          if(metaResolved) return metaResolved;
+        }catch(err){
+          console.warn('Preview image fetch failed', link, err);
+        }
+        return '';
+      }
+      function getPreviewImage(link){
+        if(!link) return Promise.resolve('');
+        if(PREVIEW_CACHE.has(link)) return PREVIEW_CACHE.get(link);
+        const promise = discoverPreview(link).then(src => src || '').catch(() => '');
+        PREVIEW_CACHE.set(link, promise);
+        return promise;
+      }
+
       // Try a local JSON first if you opt to build it via GitHub Actions
       async function tryLocalJSON(){
         try{
@@ -172,8 +537,7 @@
 
       async function fetchRSS(url){
         // Use r.jina.ai as a CORS-friendly proxy that returns raw feed text
-        const proxied = 'https://r.jina.ai/http://' + url.replace(/^https?:\/\//,'').replaceAll('&','&');
-        const res = await fetch(proxied, { cache: 'no-cache' });
+        const res = await proxyFetch(url);
         if(!res.ok) throw new Error('HTTP '+res.status);
         const xml = await res.text();
         const doc = new DOMParser().parseFromString(xml, 'text/xml');
@@ -248,8 +612,10 @@
         for(const it of items){
           const art = document.createElement('article');
           art.className = 'news-card';
-          const left = document.createElement('div');
-          const right = document.createElement('div');
+          const main = document.createElement('div');
+          main.className = 'news-main';
+          const aside = document.createElement('div');
+          aside.className = 'news-aside';
 
           const h = document.createElement('h3');
           const a = document.createElement('a');
@@ -264,8 +630,19 @@
           const src = it.source || hostFrom(it.link);
           meta.textContent = [src, fmtDate(it.pubDate)].filter(Boolean).join(' · ');
 
-          left.appendChild(h);
-          left.appendChild(meta);
+          main.appendChild(h);
+          main.appendChild(meta);
+
+          const preview = document.createElement(it.link ? 'a' : 'div');
+          preview.className = 'news-thumb';
+          if(it.link){
+            preview.href = it.link;
+            preview.target = '_blank';
+            preview.rel = 'noopener noreferrer';
+            preview.setAttribute('aria-label', 'Open "' + (it.title || 'article') + '" in new tab');
+          }
+          ensureThumbFallback(preview, it.link ? 'Loading preview…' : 'Preview unavailable');
+          aside.appendChild(preview);
 
           const action = document.createElement('div');
           action.className = 'news-actions';
@@ -276,11 +653,33 @@
           chip.rel = 'noopener noreferrer';
           chip.textContent = 'Read';
           action.appendChild(chip);
-          right.appendChild(action);
+          aside.appendChild(action);
 
-          art.appendChild(left);
-          art.appendChild(right);
+          art.appendChild(main);
+          art.appendChild(aside);
           listEl.appendChild(art);
+
+          const baseUrl = it.link || document.baseURI;
+          const inlineImage = directImageFromItem(it);
+          const loadFromArticle = () => {
+            if(!it.link){
+              showNoPreview(preview, 'No link available');
+              return;
+            }
+            ensureThumbFallback(preview, 'Loading preview…');
+            getPreviewImage(it.link).then(src => {
+              if(src && displayPreviewImage(preview, src, baseUrl)) return;
+              showNoPreview(preview);
+            });
+          };
+          if(inlineImage){
+            const success = displayPreviewImage(preview, inlineImage, baseUrl, loadFromArticle);
+            if(!success){
+              loadFromArticle();
+            }
+          } else {
+            loadFromArticle();
+          }
         }
       } catch (err){
         statusEl.textContent = 'Failed to load news: ' + err.message;
