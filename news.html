@@ -457,24 +457,28 @@
 
           const baseUrl = it.link || document.baseURI;
           const inlineImage = directImageFromItem(it);
-          const loadFromArticle = () => {
-            if(!it.link){
+          const showInlineFallback = (noLink = false) => {
+            if(noLink){
               showNoPreview(preview, 'No link available');
               return;
             }
+            if(inlineImage){
+              const ok = displayPreviewImage(preview, inlineImage, baseUrl, () => showNoPreview(preview));
+              if(!ok){
+                showNoPreview(preview);
+              }
+            } else {
+              showNoPreview(preview);
+            }
+          };
+          if(it.link){
             ensureThumbFallback(preview, 'Loading preview…');
             getPreviewImage(it.link).then(src => {
-              if(src && displayPreviewImage(preview, src, baseUrl)) return;
-              showNoPreview(preview);
+              if(src && displayPreviewImage(preview, src, it.link, showInlineFallback)) return;
+              showInlineFallback();
             });
-          };
-          if(inlineImage){
-            const success = displayPreviewImage(preview, inlineImage, baseUrl, loadFromArticle);
-            if(!success){
-              loadFromArticle();
-            }
           } else {
-            loadFromArticle();
+            showInlineFallback(true);
           }
         }
       } catch (err){
