@@ -167,8 +167,16 @@
 
       function toProxyURL(url){
         if(!url) return '';
-        const clean = String(url).replace(/^https?:\/\//,'');
-        return 'https://r.jina.ai/http://' + clean.replace(/&/g,'&');
+        try {
+          const normalized = new URL(url, document.baseURI);
+          if(normalized.protocol !== 'http:' && normalized.protocol !== 'https:'){
+            return '';
+          }
+          const target = normalized.protocol + '//' + normalized.host + normalized.pathname + normalized.search + normalized.hash;
+          return 'https://r.jina.ai/' + target;
+        } catch {
+          return '';
+        }
       }
       function proxyFetch(url, init){
         const proxied = toProxyURL(url);
