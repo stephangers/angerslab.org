@@ -16,8 +16,7 @@ SEARCH_QUERIES = [
     '"Donnelly Centre" (Toronto OR "University of Toronto" OR researchers)',
     '"University of Toronto" (neurogenesis OR "Parkinson\'s disease" OR dopaminergic OR medulloblastoma OR retinopathy)',
     '"Antlera" OR "AntlerA" OR "Antlera Therapeutics"',
-    '"EyeBio" OR (Merck AND EyeBio) OR (Merck AND "eye disease")',
-    '"Regor" (Therapeutics OR CDK OR Roche OR Genentech)'
+    '"EyeBio" OR (Merck AND EyeBio) OR (Merck AND "eye disease")'
 ]
 
 FEED_TEMPLATES = [
