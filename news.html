@@ -19,7 +19,7 @@
     .lead{color:var(--muted);max-width:72ch}
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
     .mt-1{margin-top:6px}.mt-2{margin-top:12px}.mt-3{margin-top:18px}.mt-4{margin-top:26px}
-    /* Canonical site header + nav (matched to index-2/research-2) */
+    /* Canonical site header + nav */
     header { position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(140%) blur(8px); background: linear-gradient(180deg, color-mix(in oklab, var(--bg) 30%, transparent), color-mix(in oklab, var(--bg) 55%, transparent)), url('assets/images/banner-wnt.svg') center/cover no-repeat; border-bottom: 2px solid color-mix(in oklab, var(--text) 10%, transparent); }
     .nav { display: flex; align-items: center; justify-content: space-between; height: 80px; }
     .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: .2px; }
@@ -64,8 +64,7 @@
 </head>
 <body>
   <a class="sr-only" href="#main">Skip to content</a>
-  <header>
-    <div class="wrap nav">
+  <header>\n    <div class="wrap nav">
       <a aria-label="Angers Lab Home" class="brand" href="index.html">
         <span class="logo">A</span>
         <span>Angers Lab<br/><small>Cellular Signaling &amp; Regeneration</small></span>
@@ -123,7 +122,7 @@
   </footer>
 
   <script>
-    // Header menu toggle (matches index-2/research-2)
+    // Header menu toggle (matches other pages)
     (function () {
       const btn  = document.querySelector('.menu-btn');
       const menu = document.getElementById('menu');
@@ -164,6 +163,13 @@
         'meta[property="thumbnail"]',
         'link[rel="image_src"]'
       ];
+      const AGGREGATOR_HOST_PATTERNS = [
+        /(^|\.)news\.google\./i,
+        /(^|\.)news\.yahoo\./i,
+        /(^|\.)newssearch\.yahoo\./i,
+        /(^|\.)news\.search\.yahoo\./i,
+        /(^|\.)google\.com$/i
+      ];
 
       function isLikelyImageUrl(url){
         const trimmed = (url || '').trim();
@@ -184,8 +190,7 @@
           const tokens = trimmed.split(/\s+/).filter(Boolean);
           if(!tokens.length) return null;
           const urlPart = tokens.shift();
-          let width = 0;
-          let density = 0;
+          let width = 0; let density = 0;
           tokens.forEach(token => {
             if(token.endsWith('w')){
               const parsed = parseInt(token, 10);
@@ -283,10 +288,8 @@
           attempts.push('[' + trimmed.replace(/}\s*\n\s*(?={)/g, '},{') + ']');
         }
         for(const attempt of attempts){
-          try{
-            const parsed = JSON.parse(attempt);
-            return Array.isArray(parsed) ? parsed : [parsed];
-          }catch{ /* ignore */ }
+          try{ return Array.isArray(JSON.parse(attempt)) ? JSON.parse(attempt) : [JSON.parse(attempt)]; }
+          catch{ /* ignore */ }
         }
         return [];
       }
@@ -345,10 +348,9 @@
           }
           const target = normalized.protocol + '//' + normalized.host + normalized.pathname + normalized.search + normalized.hash;
           return 'https://r.jina.ai/' + target;
-        } catch {
-          return '';
-        }
+        } catch { return ''; }
       }
+
       function proxyFetch(url, init){
         const proxied = toProxyURL(url);
         if(!proxied) return Promise.reject(new Error('Invalid URL'));
@@ -357,49 +359,96 @@
       }
 
       function hostFrom(url){
-        try { return new URL(url).host.replace(/^www\\./,''); } catch { return ''; }
+        try { return new URL(url).host.replace(/^www\./,''); } catch { return ''; }
       }
+
+      function isAggregatorUrl(url){
+        try {
+          const host = new URL(url).host;
+          return AGGREGATOR_HOST_PATTERNS.some(re => re.test(host));
+        } catch { return false; }
+      }
+
       function fmtDate(dstr){
         const d = new Date(dstr || '');
         if(!(d instanceof Date) || isNaN(d.getTime())) return dstr || '';
         return d.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
       }
+
       function includesBioKeywords(text){
         const t = (text||'').toLowerCase();
         return KEYWORDS.some(k => t.includes(k));
       }
-      function normalizeNewsJson(obj){
-        if (Array.isArray(obj)) return obj;
-        if (obj && Array.isArray(obj.items)) return obj.items;
-        if (obj && Array.isArray(obj.data)) return obj.data;
-        if (obj && Array.isArray(obj.articles)) return obj.articles;
-        if (obj && typeof obj === 'object') {
-          const vals = Object.values(obj).filter(v => v && typeof v === 'object');
-          const maybe = vals.filter(v => ('title' in v) || ('link' in v));
-          if (maybe.length) return maybe;
-        }
-        return [];
-      }
 
       function resolveUrlMaybe(value, base){
         if(!value) return '';
-        try {
-          return new URL(value, base || undefined).href;
-        } catch {
-          return '';
-        }
+        try { return new URL(value, base || undefined).href; }
+        catch { return ''; }
       }
+
+      function preferExternalArticleUrl(value, original){
+        const resolved = resolveUrlMaybe(value, original);
+        if(!resolved || resolved === original) return '';
+        let parsed = null;
+        try { parsed = new URL(resolved); } catch { parsed = null; }
+        if(parsed){
+          const nestedParam = parsed.searchParams.get('url') || parsed.searchParams.get('u') || parsed.searchParams.get('target') || parsed.searchParams.get('dest');
+          if(nestedParam){
+            const nested = resolveUrlMaybe(nestedParam, original);
+            if(nested && !isAggregatorUrl(nested) && !isLikelyImageUrl(nested)) return nested;
+          }
+        }
+        if(isAggregatorUrl(resolved) || isLikelyImageUrl(resolved)) return '';
+        return resolved;
+      }
+
+      function extractRedirectUrl(doc, originalLink, html){
+        if(!doc) return '';
+        const tryUrl = value => preferExternalArticleUrl(value, originalLink);
+        const refresh = doc.querySelector('meta[http-equiv="refresh" i]');
+        if(refresh){
+          const content = refresh.getAttribute('content') || '';
+          const match = content.match(/url=([^;]+)/i);
+          if(match){
+            const candidate = tryUrl(match[1].trim().replace(/^['"]|['"]$/g, ''));
+            if(candidate) return candidate;
+          }
+        }
+        const canonical = doc.querySelector('link[rel="canonical"]');
+        if(canonical){
+          const candidate = tryUrl(canonical.getAttribute('href'));
+          if(candidate) return candidate;
+        }
+        const ogUrl = doc.querySelector('meta[property="og:url"], meta[name="og:url"]');
+        if(ogUrl){
+          const candidate = tryUrl(ogUrl.getAttribute('content'));
+          if(candidate) return candidate;
+        }
+        const alt = doc.querySelector('link[rel="alternate"][href]');
+        if(alt){
+          const candidate = tryUrl(alt.getAttribute('href'));
+          if(candidate) return candidate;
+        }
+        const anchors = doc.querySelectorAll('a[href]');
+        for(const anchor of anchors){
+          const candidate = tryUrl(anchor.getAttribute('href'));
+          if(candidate) return candidate;
+        }
+        if(typeof html === 'string' && html){
+          const matches = html.match(/https?:\/\/[^"'\s<>]+/g) || [];
+          for(const raw of matches){
+            const cleaned = raw.replace(/&amp;/g, '&');
+            const candidate = tryUrl(cleaned);
+            if(candidate) return candidate;
+          }
+        }
+        return '';
+      }
+
       function directImageFromItem(item){
         if(!item || typeof item !== 'object') return '';
         const candidates = [
-          item.image,
-          item.imageUrl,
-          item.urlToImage,
-          item.thumbnail,
-          item.thumbnailUrl,
-          item.image_link,
-          item.imageLink,
-          item.picture,
+          item.image, item.imageUrl, item.urlToImage, item.thumbnail, item.thumbnailUrl, item.image_link, item.imageLink, item.picture,
           item.enclosure && (typeof item.enclosure === 'string' ? item.enclosure : item.enclosure.url || item.enclosure.link),
           item.media && (item.media.url || item.media.image),
           item['media:content'] && (item['media:content'].url || item['media:content'].href),
@@ -410,6 +459,7 @@
         }
         return '';
       }
+
       function ensureThumbFallback(el, text){
         if(!el) return null;
         let fallback = el.querySelector('.news-thumb__fallback');
@@ -421,6 +471,7 @@
         if(typeof text === 'string') fallback.textContent = text;
         return fallback;
       }
+
       function displayPreviewImage(el, src, base, onError){
         if(!el) return false;
         const resolved = resolveUrlMaybe(src, base || document.baseURI);
@@ -433,11 +484,10 @@
         img.alt = '';
         img.loading = 'lazy';
         img.decoding = 'async';
+        img.referrerPolicy = 'no-referrer';
         img.src = resolved;
         el.appendChild(img);
-        img.addEventListener('load', () => {
-          el.classList.add('has-image');
-        }, { once:true });
+        img.addEventListener('load', () => { el.classList.add('has-image'); }, { once:true });
         img.addEventListener('error', () => {
           img.remove();
           el.classList.remove('has-image');
@@ -447,6 +497,7 @@
         }, { once:true });
         return true;
       }
+
       function showNoPreview(el, text){
         if(!el) return;
         Array.from(el.querySelectorAll('img')).forEach(img => img.remove());
@@ -454,6 +505,7 @@
         el.classList.add('is-empty');
         ensureThumbFallback(el, text || 'Preview unavailable');
       }
+
       function findMetaImage(doc){
         if(!doc) return '';
         for(const selector of PREVIEW_META_SELECTORS){
@@ -465,28 +517,47 @@
         }
         return '';
       }
-      async function discoverPreview(link){
+
+      async function discoverPreview(link, visited){
         if(!link) return '';
+        const seen = visited || new Set();
+        if(seen.has(link)) return '';
+        seen.add(link);
         try{
           const res = await proxyFetch(link);
           if(!res.ok) throw new Error('HTTP '+res.status);
           const html = await res.text();
           const doc = new DOMParser().parseFromString(html, 'text/html');
+          const candidates = [];
           const meta = findMetaImage(doc);
-          if(meta) return resolveUrlMaybe(meta, link);
+          if(meta){
+            const resolved = resolveUrlMaybe(meta, link);
+            if(resolved) candidates.push(resolved);
+          }
           const jsonLd = findJsonLdImage(doc);
-          if(jsonLd) return resolveUrlMaybe(jsonLd, link);
+          if(jsonLd){
+            const resolved = resolveUrlMaybe(jsonLd, link);
+            if(resolved) candidates.push(resolved);
+          }
           const docImage = findDocumentImage(doc);
-          if(docImage) return resolveUrlMaybe(docImage, link);
-        }catch(err){
-          console.warn('Preview image fetch failed', link, err);
-        }
+          if(docImage){
+            const resolved = resolveUrlMaybe(docImage, link);
+            if(resolved) candidates.push(resolved);
+          }
+          const redirect = extractRedirectUrl(doc, link, html);
+          if(redirect && !seen.has(redirect)){
+            const redirected = await discoverPreview(redirect, seen);
+            if(redirected) return redirected;
+          }
+          for(const candidate of candidates){ if(candidate) return candidate; }
+        }catch(err){ console.warn('Preview image fetch failed', link, err); }
         return '';
       }
+
       function getPreviewImage(link){
         if(!link) return Promise.resolve('');
         if(PREVIEW_CACHE.has(link)) return PREVIEW_CACHE.get(link);
-        const promise = discoverPreview(link).then(src => src || '').catch(() => '');
+        const promise = discoverPreview(link, new Set()).then(src => src || '').catch(() => '');
         PREVIEW_CACHE.set(link, promise);
         return promise;
       }
@@ -512,7 +583,7 @@
           title: it.querySelector('title')?.textContent?.trim() || '',
           link: it.querySelector('link')?.textContent?.trim() || '',
           pubDate: it.querySelector('pubDate')?.textContent?.trim() || '',
-          source: (it.querySelector('source')?.textContent?.trim() || hostFrom(it.querySelector('link')?.textContent || ''))
+          source: (it.querySelector('source')?.textContent?.trim() || (it.querySelector('link')?.textContent ? new URL(it.querySelector('link').textContent).host.replace(/^www\./,'') : ''))
         }));
       }
 
@@ -525,12 +596,8 @@
         ];
         const out = [];
         for(const f of feeds){
-          try {
-            const items = await fetchRSS(f);
-            out.push(...items);
-          } catch(e) {
-            console.warn('Feed failed', f, e);
-          }
+          try { out.push(...(await fetchRSS(f))); }
+          catch(e) { console.warn('Feed failed', f, e); }
         }
         return out;
       }
@@ -540,11 +607,8 @@
         statusEl.title = '';
         let usedLocalJSON = false;
         let items = await tryLocalJSON();
-        if(items.length > 0){
-          usedLocalJSON = true;
-        } else {
-          items = await tryFeeds();
-        }
+        if(items.length > 0){ usedLocalJSON = true; }
+        else { items = await tryFeeds(); }
 
         // Deduplicate by link/title and filter to biomedical context
         const seen = new Set();
@@ -553,23 +617,20 @@
           if(!key || seen.has(key)) return false;
           seen.add(key);
           const text = (it.title || '') + ' ' + (it.description || '');
-          if(usedLocalJSON){
-            return true;
-          }
-          // Must mention Stephane Angers and have biomedical hint
+          if(usedLocalJSON){ return true; }
           const hasName = /stephane\s+angers/i.test(text) || /stephane\s+angers/i.test(it.link||'');
-          return hasName && includesBioKeywords(text + ' ' + it.link);
+          return hasName && includesBioKeywords(text + ' ' + (it.link||''));
         });
 
-        // Sort by date desc
-        items.sort((a,b)=> new Date(b.pubDate) - new Date(a.pubDate));
+        // Sort by date desc (falls back to original order if invalid dates)
+        items.sort((a,b)=> (new Date(b.pubDate).getTime() || 0) - (new Date(a.pubDate).getTime() || 0));
 
         listEl.textContent = '';
         if(items.length === 0){
           statusEl.textContent = 'No recent biomedical news found. Try again later or add items to assets/data/news.json.';
           const p = document.createElement('p');
           p.className = 'empty';
-          p.textContent = 'Tip: You can schedule a GitHub Action to write assets/data/news.json nightly from Google News/Yahoo queries for fully reliable updates.';
+          p.textContent = 'Tip: Schedule a GitHub Action to write assets/data/news.json nightly from Google News/Yahoo queries for fully reliable updates.';
           listEl.appendChild(p);
           return;
         }
@@ -593,7 +654,7 @@
 
           const meta = document.createElement('div');
           meta.className = 'news-meta';
-          const src = it.source || hostFrom(it.link);
+          const src = it.source || (it.link ? new URL(it.link).host.replace(/^www\./,'') : '');
           meta.textContent = [src, fmtDate(it.pubDate)].filter(Boolean).join(' · ');
 
           main.appendChild(h);
@@ -628,18 +689,11 @@
           const baseUrl = it.link || document.baseURI;
           const inlineImage = directImageFromItem(it);
           const showInlineFallback = (noLink = false) => {
-            if(noLink){
-              showNoPreview(preview, 'No link available');
-              return;
-            }
+            if(noLink){ showNoPreview(preview, 'No link available'); return; }
             if(inlineImage){
               const ok = displayPreviewImage(preview, inlineImage, baseUrl, () => showNoPreview(preview));
-              if(!ok){
-                showNoPreview(preview);
-              }
-            } else {
-              showNoPreview(preview);
-            }
+              if(!ok){ showNoPreview(preview); }
+            } else { showNoPreview(preview); }
           };
           if(it.link){
             ensureThumbFallback(preview, 'Loading preview…');
@@ -647,9 +701,7 @@
               if(src && displayPreviewImage(preview, src, it.link, showInlineFallback)) return;
               showInlineFallback();
             });
-          } else {
-            showInlineFallback(true);
-          }
+          } else { showInlineFallback(true); }
         }
       } catch (err){
         statusEl.textContent = 'Failed to load news: ' + err.message;
