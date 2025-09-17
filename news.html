@@ -37,7 +37,20 @@
     /* News list */
     main{padding:clamp(24px,5vw,48px) 0}
     .news-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(12px,2vw,20px)}
-    .news-card{grid-column:span 12;background:var(--panel);border:1px solid color-mix(in oklab, var(--text) 10%, transparent);border-radius:18px;padding:16px;box-shadow:var(--shadow);display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+    .news-card{grid-column:span 12;background:var(--panel);border:1px solid color-mix(in oklab, var(--text) 10%, transparent);border-radius:18px;padding:16px;box-shadow:var(--shadow);display:grid;grid-template-columns:minmax(0,1fr) clamp(180px,25vw,240px);gap:clamp(14px,3vw,22px);align-items:stretch}
+    .news-main{display:flex;flex-direction:column;gap:10px;min-width:0}
+    .news-aside{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
+    .news-thumb{width:100%;aspect-ratio:16/9;display:grid;place-items:center;border-radius:14px;overflow:hidden;background:color-mix(in oklab, var(--text) 6%, transparent);box-shadow:inset 0 0 0 1px color-mix(in oklab, var(--text) 8%, transparent);color:var(--muted);text-align:center;font-size:.85rem;padding:8px;position:relative;text-decoration:none;font-weight:600}
+    .news-thumb:hover{text-decoration:none}
+    .news-thumb img{grid-area:1/1;width:100%;height:100%;object-fit:cover}
+    .news-thumb__fallback{grid-area:1/1;padding:0 6px}
+    .news-thumb.has-image{color:transparent;background:color-mix(in oklab, var(--text) 4%, transparent)}
+    .news-thumb.has-image .news-thumb__fallback{display:none}
+    .news-thumb.is-empty{color:var(--muted)}
+    .news-aside .news-actions{justify-content:flex-end;width:100%}
+    @media (max-width:900px){ .news-card{grid-template-columns:minmax(0,1fr) clamp(160px,32vw,220px);} }
+    @media (max-width:720px){ .news-card{grid-template-columns:1fr} .news-aside{flex-direction:row;align-items:center;justify-content:space-between} .news-thumb{width:clamp(140px,42vw,220px)} .news-aside .news-actions{justify-content:flex-end} }
+    @media (max-width:560px){ .news-aside{flex-direction:column;align-items:flex-start;gap:10px} .news-thumb{width:100%} .news-aside .news-actions{width:100%;justify-content:flex-start} }
     .news-card h3{margin:0 0 4px;font-size:18px}
     .news-meta{color:var(--muted);font-size:.95rem}
     .news-actions{display:flex;gap:10px;flex-wrap:wrap}
@@ -135,6 +148,35 @@
         'wnt','frizzled','β-catenin','beta-catenin','cancer','regeneration','glioblastoma','signaling','donnelly','university of toronto','fgf','surrogate','agonist','endothelial','barrier'
       ];
 
+      const PREVIEW_CACHE = new Map();
+      const PREVIEW_META_SELECTORS = [
+        'meta[property="og:image:secure_url"]',
+        'meta[property="og:image:url"]',
+        'meta[property="og:image"]',
+        'meta[name="og:image"]',
+        'meta[property="twitter:image:src"]',
+        'meta[name="twitter:image:src"]',
+        'meta[property="twitter:image"]',
+        'meta[name="twitter:image"]',
+        'meta[property="article:image"]',
+        'meta[name="image"]',
+        'meta[name="thumbnail"]',
+        'meta[property="thumbnail"]',
+        'link[rel="image_src"]'
+      ];
+
+      function toProxyURL(url){
+        if(!url) return '';
+        const clean = String(url).replace(/^https?:\/\//,'');
+        return 'https://r.jina.ai/http://' + clean.replace(/&/g,'&');
+      }
+      function proxyFetch(url, init){
+        const proxied = toProxyURL(url);
+        if(!proxied) return Promise.reject(new Error('Invalid URL'));
+        const opts = Object.assign({ cache:'no-cache' }, init || {});
+        return fetch(proxied, opts);
+      }
+
       function hostFrom(url){
         try { return new URL(url).host.replace(/^www\\./,''); } catch { return ''; }
       }
@@ -160,6 +202,117 @@
         return [];
       }
 
+      function resolveUrlMaybe(value, base){
+        if(!value) return '';
+        try {
+          return new URL(value, base || undefined).href;
+        } catch {
+          return '';
+        }
+      }
+      function directImageFromItem(item){
+        if(!item || typeof item !== 'object') return '';
+        const candidates = [
+          item.image,
+          item.imageUrl,
+          item.urlToImage,
+          item.thumbnail,
+          item.thumbnailUrl,
+          item.image_link,
+          item.imageLink,
+          item.picture,
+          item.enclosure && (typeof item.enclosure === 'string' ? item.enclosure : item.enclosure.url || item.enclosure.link),
+          item.media && (item.media.url || item.media.image),
+          item['media:content'] && (item['media:content'].url || item['media:content'].href),
+          item['media:thumbnail'] && item['media:thumbnail'].url
+        ];
+        for(const candidate of candidates){
+          if(typeof candidate === 'string' && candidate.trim()) return candidate.trim();
+        }
+        return '';
+      }
+      function ensureThumbFallback(el, text){
+        if(!el) return null;
+        let fallback = el.querySelector('.news-thumb__fallback');
+        if(!fallback){
+          fallback = document.createElement('span');
+          fallback.className = 'news-thumb__fallback';
+          el.appendChild(fallback);
+        }
+        if(typeof text === 'string') fallback.textContent = text;
+        return fallback;
+      }
+      function displayPreviewImage(el, src, base, onError){
+        if(!el) return false;
+        const resolved = resolveUrlMaybe(src, base || document.baseURI);
+        if(!resolved) return false;
+        ensureThumbFallback(el, 'Loading preview…');
+        Array.from(el.querySelectorAll('img')).forEach(img => img.remove());
+        el.classList.remove('is-empty');
+        el.classList.remove('has-image');
+        const img = document.createElement('img');
+        img.alt = '';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.src = resolved;
+        el.appendChild(img);
+        img.addEventListener('load', () => {
+          el.classList.add('has-image');
+        }, { once:true });
+        img.addEventListener('error', () => {
+          img.remove();
+          el.classList.remove('has-image');
+          el.classList.add('is-empty');
+          ensureThumbFallback(el, 'Preview unavailable');
+          if(typeof onError === 'function') onError();
+        }, { once:true });
+        return true;
+      }
+      function showNoPreview(el, text){
+        if(!el) return;
+        Array.from(el.querySelectorAll('img')).forEach(img => img.remove());
+        el.classList.remove('has-image');
+        el.classList.add('is-empty');
+        ensureThumbFallback(el, text || 'Preview unavailable');
+      }
+      function findMetaImage(doc){
+        if(!doc) return '';
+        for(const selector of PREVIEW_META_SELECTORS){
+          const node = doc.querySelector(selector);
+          if(!node) continue;
+          const attr = selector.startsWith('link') ? 'href' : 'content';
+          const value = node.getAttribute(attr);
+          if(value && value.trim()) return value.trim();
+        }
+        return '';
+      }
+      async function discoverPreview(link){
+        if(!link) return '';
+        try{
+          const res = await proxyFetch(link);
+          if(!res.ok) throw new Error('HTTP '+res.status);
+          const html = await res.text();
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const meta = findMetaImage(doc);
+          if(meta) return resolveUrlMaybe(meta, link);
+          const imgEl = doc.querySelector('article img[src], main img[src], figure img[src], img[src]');
+          if(imgEl){
+            const val = imgEl.getAttribute('src') || imgEl.getAttribute('data-src');
+            if(val && val.trim()) return resolveUrlMaybe(val.trim(), link);
+          }
+        }catch(err){
+          console.warn('Preview image fetch failed', link, err);
+        }
+        return '';
+      }
+      function getPreviewImage(link){
+        if(!link) return Promise.resolve('');
+        if(PREVIEW_CACHE.has(link)) return PREVIEW_CACHE.get(link);
+        const promise = discoverPreview(link).then(src => src || '').catch(() => '');
+        PREVIEW_CACHE.set(link, promise);
+        return promise;
+      }
+
       // Try a local JSON first if you opt to build it via GitHub Actions
       async function tryLocalJSON(){
         try{
@@ -172,8 +325,7 @@
 
       async function fetchRSS(url){
         // Use r.jina.ai as a CORS-friendly proxy that returns raw feed text
-        const proxied = 'https://r.jina.ai/http://' + url.replace(/^https?:\/\//,'').replaceAll('&','&');
-        const res = await fetch(proxied, { cache: 'no-cache' });
+        const res = await proxyFetch(url);
         if(!res.ok) throw new Error('HTTP '+res.status);
         const xml = await res.text();
         const doc = new DOMParser().parseFromString(xml, 'text/xml');
@@ -248,8 +400,10 @@
         for(const it of items){
           const art = document.createElement('article');
           art.className = 'news-card';
-          const left = document.createElement('div');
-          const right = document.createElement('div');
+          const main = document.createElement('div');
+          main.className = 'news-main';
+          const aside = document.createElement('div');
+          aside.className = 'news-aside';
 
           const h = document.createElement('h3');
           const a = document.createElement('a');
@@ -264,8 +418,19 @@
           const src = it.source || hostFrom(it.link);
           meta.textContent = [src, fmtDate(it.pubDate)].filter(Boolean).join(' · ');
 
-          left.appendChild(h);
-          left.appendChild(meta);
+          main.appendChild(h);
+          main.appendChild(meta);
+
+          const preview = document.createElement(it.link ? 'a' : 'div');
+          preview.className = 'news-thumb';
+          if(it.link){
+            preview.href = it.link;
+            preview.target = '_blank';
+            preview.rel = 'noopener noreferrer';
+            preview.setAttribute('aria-label', 'Open "' + (it.title || 'article') + '" in new tab');
+          }
+          ensureThumbFallback(preview, it.link ? 'Loading preview…' : 'Preview unavailable');
+          aside.appendChild(preview);
 
           const action = document.createElement('div');
           action.className = 'news-actions';
@@ -276,11 +441,33 @@
           chip.rel = 'noopener noreferrer';
           chip.textContent = 'Read';
           action.appendChild(chip);
-          right.appendChild(action);
+          aside.appendChild(action);
 
-          art.appendChild(left);
-          art.appendChild(right);
+          art.appendChild(main);
+          art.appendChild(aside);
           listEl.appendChild(art);
+
+          const baseUrl = it.link || document.baseURI;
+          const inlineImage = directImageFromItem(it);
+          const loadFromArticle = () => {
+            if(!it.link){
+              showNoPreview(preview, 'No link available');
+              return;
+            }
+            ensureThumbFallback(preview, 'Loading preview…');
+            getPreviewImage(it.link).then(src => {
+              if(src && displayPreviewImage(preview, src, baseUrl)) return;
+              showNoPreview(preview);
+            });
+          };
+          if(inlineImage){
+            const success = displayPreviewImage(preview, inlineImage, baseUrl, loadFromArticle);
+            if(!success){
+              loadFromArticle();
+            }
+          } else {
+            loadFromArticle();
+          }
         }
       } catch (err){
         statusEl.textContent = 'Failed to load news: ' + err.message;
