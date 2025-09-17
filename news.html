@@ -165,6 +165,177 @@
         'link[rel="image_src"]'
       ];
 
+      function isLikelyImageUrl(url){
+        const trimmed = (url || '').trim();
+        if(!trimmed || /^data:/i.test(trimmed)) return false;
+        const normalized = trimmed.replace(/^https?:\/\//i, '').replace(/^\/\//, '').trim();
+        const bare = trimmed.split('?')[0].split('#')[0];
+        if(/\.(jpe?g|png|gif|bmp|webp|avif|heic|heif|svg)$/i.test(bare)) return true;
+        const query = trimmed.split('?')[1] || '';
+        if(/(format|width|height|quality|image|photo|media|thumb|webp|jpeg|jpg|png|img|size|crop|fit|url=|w=|h=)/i.test(query)) return true;
+        return /(image|photo|media|thumbnail|uploads|wp-content|cdn|static|assets|img)/i.test(normalized);
+      }
+
+      function chooseFromSrcset(value){
+        if(!value || typeof value !== 'string') return '';
+        const entries = value.split(',').map(part => {
+          const trimmed = part.trim();
+          if(!trimmed) return null;
+          const tokens = trimmed.split(/\s+/).filter(Boolean);
+          if(!tokens.length) return null;
+          const urlPart = tokens.shift();
+          let width = 0;
+          let density = 0;
+          tokens.forEach(token => {
+            if(token.endsWith('w')){
+              const parsed = parseInt(token, 10);
+              if(isFinite(parsed)) width = parsed;
+            } else if(token.endsWith('x')){
+              const parsed = parseFloat(token);
+              if(isFinite(parsed)) density = parsed;
+            }
+          });
+          return { url: (urlPart || '').trim(), width, density };
+        }).filter(entry => entry && entry.url && !/^data:/i.test(entry.url));
+        if(!entries.length) return '';
+        entries.sort((a, b) => {
+          if(a.width !== b.width) return b.width - a.width;
+          return b.density - a.density;
+        });
+        return entries[0]?.url || '';
+      }
+
+      function bestFromImageElement(el){
+        if(!el) return '';
+        const prioritizedAttrs = [
+          'data-original', 'data-src', 'data-srcset', 'data-large-image', 'data-lazy-src', 'data-highres', 'data-hires',
+          'data-img', 'data-image', 'data-photo', 'data-fullsrc', 'data-full-src', 'srcset', 'src'
+        ];
+        for(const attr of prioritizedAttrs){
+          const val = el.getAttribute(attr);
+          if(!val) continue;
+          if(attr.includes('srcset')){
+            const chosen = chooseFromSrcset(val);
+            if(chosen) return chosen;
+          } else {
+            const trimmed = val.trim();
+            if(trimmed && !/^data:/i.test(trimmed) && (attr === 'src' || isLikelyImageUrl(trimmed))) return trimmed;
+          }
+        }
+        if(el.dataset){
+          for(const key of Object.keys(el.dataset)){
+            if(/(src|image|photo|img)$/i.test(key)){
+              const val = el.dataset[key];
+              if(val && val.trim() && !/^data:/i.test(val)){
+                const trimmed = val.trim();
+                if(isLikelyImageUrl(trimmed) || /(^https?:|^\/\/)/i.test(trimmed) || trimmed.startsWith('/')) return trimmed;
+              }
+            }
+          }
+        }
+        return '';
+      }
+
+      function bestFromPicture(el){
+        if(!el) return '';
+        const sources = el.querySelectorAll('source[srcset], source[data-srcset]');
+        for(const source of sources){
+          const val = source.getAttribute('srcset') || source.getAttribute('data-srcset');
+          const chosen = chooseFromSrcset(val);
+          if(chosen) return chosen;
+        }
+        const img = el.querySelector('img');
+        if(img){
+          const fromImg = bestFromImageElement(img);
+          if(fromImg) return fromImg;
+        }
+        return '';
+      }
+
+      function gatherJsonLdImages(value, out){
+        if(!value) return;
+        if(typeof value === 'string'){
+          const trimmed = value.trim();
+          if(trimmed && !/^data:/i.test(trimmed) && isLikelyImageUrl(trimmed)) out.push(trimmed);
+          return;
+        }
+        if(Array.isArray(value)){
+          value.forEach(v => gatherJsonLdImages(v, out));
+          return;
+        }
+        if(typeof value === 'object'){
+          const keys = Object.keys(value);
+          for(const key of ['url','contentUrl','image','imageUrl','thumbnail','thumbnailUrl','logo','@id']){
+            if(key in value) gatherJsonLdImages(value[key], out);
+          }
+          for(const key of keys){
+            if(/image|thumbnail|logo/i.test(key)) gatherJsonLdImages(value[key], out);
+          }
+        }
+      }
+
+      function parseJsonLd(text){
+        if(!text) return [];
+        const trimmed = text.trim();
+        if(!trimmed) return [];
+        const attempts = [trimmed];
+        if(trimmed.startsWith('{') && /}\s*\n\s*{/.test(trimmed)){
+          attempts.push('[' + trimmed.replace(/}\s*\n\s*(?={)/g, '},{') + ']');
+        }
+        for(const attempt of attempts){
+          try{
+            const parsed = JSON.parse(attempt);
+            return Array.isArray(parsed) ? parsed : [parsed];
+          }catch{ /* ignore */ }
+        }
+        return [];
+      }
+
+      function findJsonLdImage(doc){
+        const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
+        for(const script of scripts){
+          const candidates = [];
+          const parsed = parseJsonLd(script.textContent || '');
+          parsed.forEach(node => gatherJsonLdImages(node, candidates));
+          const first = candidates.find(val => !!val && !/^data:/i.test(val) && isLikelyImageUrl(val));
+          if(first) return first;
+        }
+        return '';
+      }
+
+      function findDocumentImage(doc){
+        if(!doc) return '';
+        const selectors = [
+          'article picture', 'main picture', 'figure picture', 'picture',
+          'article img', 'main img', 'figure img', 'amp-img', 'img'
+        ];
+        for(const selector of selectors){
+          const node = doc.querySelector(selector);
+          if(!node) continue;
+          const picture = node.tagName && node.tagName.toLowerCase() === 'picture'
+            ? node
+            : (typeof node.closest === 'function' ? node.closest('picture') : null);
+          if(picture){
+            const fromPicture = bestFromPicture(picture);
+            if(fromPicture) return fromPicture;
+          }
+          if(node.tagName && node.tagName.toLowerCase() === 'amp-img'){
+            const amp = node.getAttribute('src') || node.getAttribute('data-src');
+            if(amp && amp.trim() && !/^data:/i.test(amp) && (isLikelyImageUrl(amp) || /(^https?:|^\/\/)/i.test(amp) || amp.trim().startsWith('/'))){
+              return amp.trim();
+            }
+          }
+          const fromImg = bestFromImageElement(node);
+          if(fromImg) return fromImg;
+        }
+        const preload = doc.querySelector('link[rel="preload"][as="image"], link[rel="prefetch"][as="image"]');
+        if(preload){
+          const href = preload.getAttribute('href');
+          if(href && href.trim() && !/^data:/i.test(href) && isLikelyImageUrl(href)) return href.trim();
+        }
+        return '';
+      }
+
       function toProxyURL(url){
         if(!url) return '';
         try {
@@ -303,11 +474,10 @@
           const doc = new DOMParser().parseFromString(html, 'text/html');
           const meta = findMetaImage(doc);
           if(meta) return resolveUrlMaybe(meta, link);
-          const imgEl = doc.querySelector('article img[src], main img[src], figure img[src], img[src]');
-          if(imgEl){
-            const val = imgEl.getAttribute('src') || imgEl.getAttribute('data-src');
-            if(val && val.trim()) return resolveUrlMaybe(val.trim(), link);
-          }
+          const jsonLd = findJsonLdImage(doc);
+          if(jsonLd) return resolveUrlMaybe(jsonLd, link);
+          const docImage = findDocumentImage(doc);
+          if(docImage) return resolveUrlMaybe(docImage, link);
         }catch(err){
           console.warn('Preview image fetch failed', link, err);
         }
