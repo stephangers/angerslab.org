@@ -208,8 +208,11 @@
       try {
         statusEl.textContent = 'Loading news…';
         statusEl.title = '';
+        let usedLocalJSON = false;
         let items = await tryLocalJSON();
-        if(items.length === 0){
+        if(items.length > 0){
+          usedLocalJSON = true;
+        } else {
           items = await tryFeeds();
         }
 
@@ -220,6 +223,9 @@
           if(!key || seen.has(key)) return false;
           seen.add(key);
           const text = (it.title || '') + ' ' + (it.description || '');
+          if(usedLocalJSON){
+            return true;
+          }
           // Must mention Stephane Angers and have biomedical hint
           const hasName = /stephane\s+angers/i.test(text) || /stephane\s+angers/i.test(it.link||'');
           return hasName && includesBioKeywords(text + ' ' + it.link);
