@@ -386,6 +386,40 @@
         catch { return ''; }
       }
 
+      function normalizeLinkKey(link){
+        if(!link) return '';
+        try {
+          const url = new URL(link, document.baseURI);
+          url.hash = '';
+          return url.href;
+        } catch {
+          return String(link || '').trim();
+        }
+      }
+
+      function mergeItemsWithFeed(localItems, feedItems){
+        if(!Array.isArray(localItems) || !localItems.length) return Array.isArray(localItems) ? localItems : [];
+        if(!Array.isArray(feedItems) || !feedItems.length) return localItems;
+        const lookup = new Map();
+        const remember = (key, value) => {
+          if(key && !lookup.has(key)) lookup.set(key, value);
+        };
+        feedItems.forEach(item => {
+          if(!item || typeof item !== 'object') return;
+          remember(normalizeLinkKey(item.link), item);
+          const titleKey = (item.title || '').trim().toLowerCase();
+          if(titleKey) remember('title:' + titleKey, item);
+        });
+        return localItems.map(item => {
+          if(!item || typeof item !== 'object') return item;
+          const linkKey = normalizeLinkKey(item.link);
+          const titleKey = (item.title || '').trim().toLowerCase();
+          const match = lookup.get(linkKey) || (titleKey ? lookup.get('title:' + titleKey) : null);
+          if(!match) return item;
+          return Object.assign({}, match, item);
+        });
+      }
+
       function preferExternalArticleUrl(value, original){
         const resolved = resolveUrlMaybe(value, original);
         if(!resolved || resolved === original) return '';
@@ -707,12 +741,38 @@
         statusEl.title = '';
         let usedLocalJSON = false;
         let items = await tryLocalJSON();
-        if(items.length > 0){ usedLocalJSON = true; }
-        else { items = await tryFeeds(); }
+        if(items.length > 0){
+          usedLocalJSON = true;
+          try {
+            const feedItems = await tryFeeds();
+            if(Array.isArray(feedItems) && feedItems.length){
+              const enriched = mergeItemsWithFeed(items, feedItems);
+              const seenKeys = new Set();
+              enriched.forEach(it => {
+                if(!it || typeof it !== 'object') return;
+                const key = (it.link || it.title || '').trim();
+                if(key) seenKeys.add(key);
+              });
+              feedItems.forEach(feedItem => {
+                if(!feedItem) return;
+                const key = (feedItem.link || feedItem.title || '').trim();
+                if(!key || seenKeys.has(key)) return;
+                seenKeys.add(key);
+                enriched.push(feedItem);
+              });
+              items = enriched;
+            }
+          } catch (err) {
+            console.warn('Feed enrichment failed', err);
+          }
+        } else {
+          items = await tryFeeds();
+        }
 
         // Deduplicate by link/title and filter to biomedical context
         const seen = new Set();
         items = items.filter(it => {
+          if(!it || typeof it !== 'object') return false;
           const key = (it.link || it.title).trim();
           if(!key || seen.has(key)) return false;
           seen.add(key);
