@@ -119,7 +119,7 @@ footer { border-top: 1px solid color-mix(in oklab, var(--text) 10%, transparent)
       <p class="lead">Browse our lab's work. Use the search box to filter by author, title, journal, or year.</p>
       <div class="filter-row sticky-tools">
         <label class="input" for="pub-filter">🔎 <input id="pub-filter" type="search" placeholder="Filter publications…"></label>
-        <span P25-08-26T23:47:14Z">Updated —</span>
+        <span id="updated" class="updated-pill" data-updated="2025-08-26T23:47:14Z">Updated — Aug 26, 2025 at 23:47 (UTC)</span>
       </div>
       <p id="no-results" class="no-results">No publications match your filter.</p>
     </div>
@@ -441,7 +441,7 @@ function toggleMenu() {
   if (iso && iso !== '2025-08-26T23:39:03Z') {
     try {
       const dt = new Date(iso);
-      const fmt = dt.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+      const fmt = dt.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' });
       el.textContent = 'Updated — ' + fmt + ' (UTC)';
     } catch(e) {}
   }
