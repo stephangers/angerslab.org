@@ -457,15 +457,15 @@
     "photo": "assets/images/people/teresa-lee.jpg",
     "initials": "TL",
     "linkedin": "https://www.linkedin.com/in/teresa-lee-97235b279/"
-    },
+  },
   {
     "group": "alumni",
     "name": "Yun Kim",
     "years": "2021-2024",
     "role": "Research Technician",
     "present": "",
-    "photo": "assets/images/people/yun-kim.jpeg"
+    "photo": "assets/images/people/yun-kim.jpeg",
     "initials": "YK",
     "linkedin": ""
-    },
+  }
 ]
