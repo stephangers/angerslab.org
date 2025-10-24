@@ -37,21 +37,22 @@
     /* News list */
     main{padding:clamp(24px,5vw,48px) 0}
     .news-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(12px,2vw,20px)}
-    .news-card{grid-column:span 12;background:var(--panel);border:1px solid color-mix(in oklab, var(--text) 10%, transparent);border-radius:18px;padding:16px;box-shadow:var(--shadow);display:grid;grid-template-columns:minmax(0,1fr) clamp(180px,25vw,240px);gap:clamp(14px,3vw,22px);align-items:stretch}
+    .news-card{grid-column:span 12;background:var(--panel);border:1px solid color-mix(in oklab, var(--text) 10%, transparent);border-radius:18px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:clamp(12px,2vw,18px);min-width:0}
     .news-main{display:flex;flex-direction:column;gap:10px;min-width:0}
-    .news-aside{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
-    .news-thumb{width:100%;aspect-ratio:16/9;display:grid;place-items:center;border-radius:14px;overflow:hidden;background:color-mix(in oklab, var(--text) 6%, transparent);box-shadow:inset 0 0 0 1px color-mix(in oklab, var(--text) 8%, transparent);color:var(--muted);text-align:center;font-size:.85rem;padding:8px;position:relative;text-decoration:none;font-weight:600}
+    .news-header{display:flex;align-items:flex-start;gap:clamp(12px,2vw,18px)}
+    .news-title{margin:0;font-size:18px;line-height:1.35;flex:1;min-width:0}
+    .news-thumb{width:clamp(150px,28vw,220px);aspect-ratio:16/9;display:grid;place-items:center;border-radius:14px;overflow:hidden;background:color-mix(in oklab, var(--text) 6%, transparent);box-shadow:inset 0 0 0 1px color-mix(in oklab, var(--text) 8%, transparent);color:var(--muted);text-align:center;font-size:.85rem;padding:8px;position:relative;text-decoration:none;font-weight:600;flex-shrink:0}
     .news-thumb:hover{text-decoration:none}
     .news-thumb img{grid-area:1/1;width:100%;height:100%;object-fit:cover}
     .news-thumb__fallback{grid-area:1/1;padding:0 6px}
     .news-thumb.has-image{color:transparent;background:color-mix(in oklab, var(--text) 4%, transparent)}
     .news-thumb.has-image .news-thumb__fallback{display:none}
     .news-thumb.is-empty{color:var(--muted)}
-    .news-aside .news-actions{justify-content:flex-end;width:100%}
-    @media (max-width:900px){ .news-card{grid-template-columns:minmax(0,1fr) clamp(160px,32vw,220px);} }
-    @media (max-width:720px){ .news-card{grid-template-columns:1fr} .news-aside{flex-direction:row;align-items:center;justify-content:space-between} .news-thumb{width:clamp(140px,42vw,220px)} .news-aside .news-actions{justify-content:flex-end} }
-    @media (max-width:560px){ .news-aside{flex-direction:column;align-items:flex-start;gap:10px} .news-thumb{width:100%} .news-aside .news-actions{width:100%;justify-content:flex-start} }
-    .news-card h3{margin:0 0 4px;font-size:18px}
+    .news-actions{justify-content:flex-start}
+    @media (max-width:720px){
+      .news-header{flex-direction:column;align-items:stretch}
+      .news-thumb{width:100%}
+    }
     .news-meta{color:var(--muted);font-size:.95rem}
     .news-actions{display:flex;gap:10px;flex-wrap:wrap}
     .chip{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:color-mix(in oklab, var(--text) 8%, transparent);color:var(--text);font-weight:600}
@@ -801,10 +802,11 @@
           art.className = 'news-card';
           const main = document.createElement('div');
           main.className = 'news-main';
-          const aside = document.createElement('div');
-          aside.className = 'news-aside';
+          const header = document.createElement('div');
+          header.className = 'news-header';
 
           const h = document.createElement('h3');
+          h.className = 'news-title';
           const a = document.createElement('a');
           a.href = it.link || '#';
           a.rel = 'noopener noreferrer';
@@ -817,9 +819,6 @@
           const src = it.source || (it.link ? new URL(it.link).host.replace(/^www\./,'') : '');
           meta.textContent = [src, fmtDate(it.pubDate)].filter(Boolean).join(' · ');
 
-          main.appendChild(h);
-          main.appendChild(meta);
-
           const preview = document.createElement(it.link ? 'a' : 'div');
           preview.className = 'news-thumb';
           if(it.link){
@@ -829,7 +828,11 @@
             preview.setAttribute('aria-label', 'Open "' + (it.title || 'article') + '" in new tab');
           }
           ensureThumbFallback(preview, it.link ? 'Loading preview…' : 'Preview unavailable');
-          aside.appendChild(preview);
+          header.appendChild(h);
+          header.appendChild(preview);
+
+          main.appendChild(header);
+          main.appendChild(meta);
 
           const action = document.createElement('div');
           action.className = 'news-actions';
@@ -840,10 +843,9 @@
           chip.rel = 'noopener noreferrer';
           chip.textContent = 'Read';
           action.appendChild(chip);
-          aside.appendChild(action);
+          main.appendChild(action);
 
           art.appendChild(main);
-          art.appendChild(aside);
           listEl.appendChild(art);
 
           const baseUrl = it.link || document.baseURI;
