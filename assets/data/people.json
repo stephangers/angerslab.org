@@ -8,9 +8,9 @@
     "education": "B.Sc. Biochemistry (McGill University), Ph.D Biochemistry (Universit\u00e9 de Montr\u00e9al)",
     "interests": "Wnt signaling, stem cell biology",
     "pastimes": "Hockey, golf, wine",
-    "linkedin": "https://linkedin.com/in/janedoe",
-    "scholar": "https://scholar.google.com/citations?user=XXXX",
-    "orcid": "https://orcid.org/0000-0000-0000-0000"
+    "linkedin": "https://www.linkedin.com/in/stephane-angers-🇨🇦-75981a6/",
+    "scholar": "https://scholar.google.ca/citations?user=6Wa4BbYAAAAJ&hl=en&oi=ao",
+    "orcid": "https://orcid.org/0000-0001-7241-9044"
   },
   {
     "name": "Graham Macleod, Ph.D",
@@ -21,9 +21,9 @@
     "education": "B.Sc. (University of Toronto at Mississauga), Ph.D (University of Toronto, Department of Cell & Systems Biology).",
     "interests": "Glioblastoma, Genome-wide CRISPR/Cas9 screening, Proteomics, Protein Phosphatases, DNA Damage",
     "pastimes": "Hiking, Travel, Hockey, Baseball",
-    "linkedin": "https://linkedin.com/in/janedoe",
-    "scholar": "https://scholar.google.com/citations?user=XXXX",
-    "orcid": "https://orcid.org/0000-0000-0000-0000"
+    "linkedin": "https://www.linkedin.com/in/ggrahammacleod/",
+    "scholar": "https://scholar.google.ca/citations?user=Rgql6YcAAAAJ&hl=en&oi=ao",
+    "orcid": "https://orcid.org/0000-0001-6401-9307"
   },
   {
     "name": "Sichun Lin",
@@ -370,8 +370,8 @@
     "name": "Charis Lam",
     "years": "Summer 2012",
     "role": "Summer Student (Pharmaceutical Sciences)",
-    "present": "assets/images/people/charis-lam.jpeg",
-    "photo": "",
+    "present": "Software Engineer, Supabase",
+    "photo": "assets/images/people/charis-lam.jpeg",
     "initials": "CL",
     "linkedin": ""
     },
