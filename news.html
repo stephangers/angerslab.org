@@ -370,6 +370,89 @@
         } catch { return false; }
       }
 
+      function safeDecodeURIComponent(str){
+        if(typeof str !== 'string') return '';
+        try { return decodeURIComponent(str); }
+        catch { return ''; }
+      }
+
+      function decodeBase64Variant(value){
+        if(typeof value !== 'string' || typeof atob !== 'function') return '';
+        const sanitized = value.replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');
+        if(!/^[A-Za-z0-9+/=]+$/.test(sanitized)) return '';
+        try {
+          let padded = sanitized;
+          while(padded.length % 4) padded += '=';
+          return atob(padded);
+        } catch { return ''; }
+      }
+
+      function extractUrlFromText(text, base){
+        if(typeof text !== 'string' || !text) return '';
+        const matches = text.match(/https?:\/\/[^\s"'<>]+/g);
+        if(!matches) return '';
+        for(const match of matches){
+          const candidate = resolveUrlMaybe(match, base);
+          if(candidate && !isAggregatorUrl(candidate) && !isLikelyImageUrl(candidate)) return candidate;
+        }
+        return '';
+      }
+
+      function decodeAggregatorLink(value, original){
+        if(!value) return '';
+        const attempts = new Set();
+        const queue = [];
+        const push = str => {
+          if(typeof str !== 'string' || !str.trim() || attempts.has(str)) return;
+          attempts.add(str);
+          queue.push(str);
+        };
+        push(value);
+        const resolved = resolveUrlMaybe(value, original);
+        if(resolved) push(resolved);
+        if(isAggregatorUrl(original)) push(original);
+
+        // decode nested URI components aggressively (handles repeated encoding)
+        for(const originalAttempt of Array.from(attempts)){
+          let current = originalAttempt;
+          let decoded = safeDecodeURIComponent(current);
+          let depth = 0;
+          while(decoded && decoded !== current && depth < 4){
+            push(decoded);
+            current = decoded;
+            decoded = safeDecodeURIComponent(current);
+            depth += 1;
+          }
+        }
+
+        for(const str of queue){
+          const extracted = extractUrlFromText(str, original);
+          if(extracted) return extracted;
+        }
+
+        const more = new Set(queue);
+        queue.forEach(str => {
+          if(typeof str !== 'string') return;
+          const parts = str.split(/[/?&]/);
+          for(const part of parts){
+            if(part.length < 8) continue;
+            more.add(part);
+            const decoded = safeDecodeURIComponent(part);
+            if(decoded && decoded !== part) more.add(decoded);
+          }
+        });
+
+        for(const fragment of more){
+          if(typeof fragment !== 'string' || fragment.length < 8) continue;
+          const decoded = decodeBase64Variant(fragment);
+          if(decoded){
+            const extracted = extractUrlFromText(decoded, original);
+            if(extracted) return extracted;
+          }
+        }
+        return '';
+      }
+
       function fmtDate(dstr){
         const d = new Date(dstr || '');
         if(!(d instanceof Date) || isNaN(d.getTime())) return dstr || '';
@@ -423,9 +506,12 @@
 
       function preferExternalArticleUrl(value, original){
         const resolved = resolveUrlMaybe(value, original);
-        if(!resolved || resolved === original) return '';
+        if(resolved && resolved !== original && !isAggregatorUrl(resolved) && !isLikelyImageUrl(resolved)) return resolved;
+
         let parsed = null;
-        try { parsed = new URL(resolved); } catch { parsed = null; }
+        if(resolved){
+          try { parsed = new URL(resolved); } catch { parsed = null; }
+        }
         if(parsed){
           const nestedParam = parsed.searchParams.get('url') || parsed.searchParams.get('u') || parsed.searchParams.get('target') || parsed.searchParams.get('dest');
           if(nestedParam){
@@ -433,8 +519,16 @@
             if(nested && !isAggregatorUrl(nested) && !isLikelyImageUrl(nested)) return nested;
           }
         }
-        if(isAggregatorUrl(resolved) || isLikelyImageUrl(resolved)) return '';
-        return resolved;
+
+        if(isAggregatorUrl(original) || (resolved && isAggregatorUrl(resolved))){
+          const aggregatorCandidate = decodeAggregatorLink(resolved || value || original, original);
+          if(aggregatorCandidate) return aggregatorCandidate;
+          const fallback = decodeAggregatorLink(value, original) || decodeAggregatorLink(original, original);
+          if(fallback) return fallback;
+        }
+
+        if(resolved && resolved !== original && !isLikelyImageUrl(resolved)) return resolved;
+        return '';
       }
 
       function extractRedirectUrl(doc, originalLink, html){
@@ -658,6 +752,13 @@
         const seen = visited || new Set();
         if(seen.has(link)) return '';
         seen.add(link);
+        if(isAggregatorUrl(link)){
+          const decoded = decodeAggregatorLink(link, link);
+          if(decoded && !seen.has(decoded)){
+            const redirected = await discoverPreview(decoded, seen);
+            if(redirected) return redirected;
+          }
+        }
         try{
           const res = await proxyFetch(link);
           if(!res.ok) throw new Error('HTTP '+res.status);
