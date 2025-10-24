@@ -37,21 +37,22 @@
     /* News list */
     main{padding:clamp(24px,5vw,48px) 0}
     .news-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:clamp(12px,2vw,20px)}
-    .news-card{grid-column:span 12;background:var(--panel);border:1px solid color-mix(in oklab, var(--text) 10%, transparent);border-radius:18px;padding:16px;box-shadow:var(--shadow);display:grid;grid-template-columns:minmax(0,1fr) clamp(180px,25vw,240px);gap:clamp(14px,3vw,22px);align-items:stretch}
+    .news-card{grid-column:span 12;background:var(--panel);border:1px solid color-mix(in oklab, var(--text) 10%, transparent);border-radius:18px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:clamp(12px,2vw,18px);min-width:0}
     .news-main{display:flex;flex-direction:column;gap:10px;min-width:0}
-    .news-aside{display:flex;flex-direction:column;align-items:flex-end;gap:12px}
-    .news-thumb{width:100%;aspect-ratio:16/9;display:grid;place-items:center;border-radius:14px;overflow:hidden;background:color-mix(in oklab, var(--text) 6%, transparent);box-shadow:inset 0 0 0 1px color-mix(in oklab, var(--text) 8%, transparent);color:var(--muted);text-align:center;font-size:.85rem;padding:8px;position:relative;text-decoration:none;font-weight:600}
+    .news-header{display:flex;align-items:flex-start;gap:clamp(12px,2vw,18px)}
+    .news-title{margin:0;font-size:18px;line-height:1.35;flex:1;min-width:0}
+    .news-thumb{width:clamp(150px,28vw,220px);aspect-ratio:16/9;display:grid;place-items:center;border-radius:14px;overflow:hidden;background:color-mix(in oklab, var(--text) 6%, transparent);box-shadow:inset 0 0 0 1px color-mix(in oklab, var(--text) 8%, transparent);color:var(--muted);text-align:center;font-size:.85rem;padding:8px;position:relative;text-decoration:none;font-weight:600;flex-shrink:0}
     .news-thumb:hover{text-decoration:none}
     .news-thumb img{grid-area:1/1;width:100%;height:100%;object-fit:cover}
     .news-thumb__fallback{grid-area:1/1;padding:0 6px}
     .news-thumb.has-image{color:transparent;background:color-mix(in oklab, var(--text) 4%, transparent)}
     .news-thumb.has-image .news-thumb__fallback{display:none}
     .news-thumb.is-empty{color:var(--muted)}
-    .news-aside .news-actions{justify-content:flex-end;width:100%}
-    @media (max-width:900px){ .news-card{grid-template-columns:minmax(0,1fr) clamp(160px,32vw,220px);} }
-    @media (max-width:720px){ .news-card{grid-template-columns:1fr} .news-aside{flex-direction:row;align-items:center;justify-content:space-between} .news-thumb{width:clamp(140px,42vw,220px)} .news-aside .news-actions{justify-content:flex-end} }
-    @media (max-width:560px){ .news-aside{flex-direction:column;align-items:flex-start;gap:10px} .news-thumb{width:100%} .news-aside .news-actions{width:100%;justify-content:flex-start} }
-    .news-card h3{margin:0 0 4px;font-size:18px}
+    .news-actions{justify-content:flex-start}
+    @media (max-width:720px){
+      .news-header{flex-direction:column;align-items:stretch}
+      .news-thumb{width:100%}
+    }
     .news-meta{color:var(--muted);font-size:.95rem}
     .news-actions{display:flex;gap:10px;flex-wrap:wrap}
     .chip{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:color-mix(in oklab, var(--text) 8%, transparent);color:var(--text);font-weight:600}
@@ -369,6 +370,89 @@
         } catch { return false; }
       }
 
+      function safeDecodeURIComponent(str){
+        if(typeof str !== 'string') return '';
+        try { return decodeURIComponent(str); }
+        catch { return ''; }
+      }
+
+      function decodeBase64Variant(value){
+        if(typeof value !== 'string' || typeof atob !== 'function') return '';
+        const sanitized = value.replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');
+        if(!/^[A-Za-z0-9+/=]+$/.test(sanitized)) return '';
+        try {
+          let padded = sanitized;
+          while(padded.length % 4) padded += '=';
+          return atob(padded);
+        } catch { return ''; }
+      }
+
+      function extractUrlFromText(text, base){
+        if(typeof text !== 'string' || !text) return '';
+        const matches = text.match(/https?:\/\/[^\s"'<>]+/g);
+        if(!matches) return '';
+        for(const match of matches){
+          const candidate = resolveUrlMaybe(match, base);
+          if(candidate && !isAggregatorUrl(candidate) && !isLikelyImageUrl(candidate)) return candidate;
+        }
+        return '';
+      }
+
+      function decodeAggregatorLink(value, original){
+        if(!value) return '';
+        const attempts = new Set();
+        const queue = [];
+        const push = str => {
+          if(typeof str !== 'string' || !str.trim() || attempts.has(str)) return;
+          attempts.add(str);
+          queue.push(str);
+        };
+        push(value);
+        const resolved = resolveUrlMaybe(value, original);
+        if(resolved) push(resolved);
+        if(isAggregatorUrl(original)) push(original);
+
+        // decode nested URI components aggressively (handles repeated encoding)
+        for(const originalAttempt of Array.from(attempts)){
+          let current = originalAttempt;
+          let decoded = safeDecodeURIComponent(current);
+          let depth = 0;
+          while(decoded && decoded !== current && depth < 4){
+            push(decoded);
+            current = decoded;
+            decoded = safeDecodeURIComponent(current);
+            depth += 1;
+          }
+        }
+
+        for(const str of queue){
+          const extracted = extractUrlFromText(str, original);
+          if(extracted) return extracted;
+        }
+
+        const more = new Set(queue);
+        queue.forEach(str => {
+          if(typeof str !== 'string') return;
+          const parts = str.split(/[/?&]/);
+          for(const part of parts){
+            if(part.length < 8) continue;
+            more.add(part);
+            const decoded = safeDecodeURIComponent(part);
+            if(decoded && decoded !== part) more.add(decoded);
+          }
+        });
+
+        for(const fragment of more){
+          if(typeof fragment !== 'string' || fragment.length < 8) continue;
+          const decoded = decodeBase64Variant(fragment);
+          if(decoded){
+            const extracted = extractUrlFromText(decoded, original);
+            if(extracted) return extracted;
+          }
+        }
+        return '';
+      }
+
       function fmtDate(dstr){
         const d = new Date(dstr || '');
         if(!(d instanceof Date) || isNaN(d.getTime())) return dstr || '';
@@ -422,9 +506,12 @@
 
       function preferExternalArticleUrl(value, original){
         const resolved = resolveUrlMaybe(value, original);
-        if(!resolved || resolved === original) return '';
+        if(resolved && resolved !== original && !isAggregatorUrl(resolved) && !isLikelyImageUrl(resolved)) return resolved;
+
         let parsed = null;
-        try { parsed = new URL(resolved); } catch { parsed = null; }
+        if(resolved){
+          try { parsed = new URL(resolved); } catch { parsed = null; }
+        }
         if(parsed){
           const nestedParam = parsed.searchParams.get('url') || parsed.searchParams.get('u') || parsed.searchParams.get('target') || parsed.searchParams.get('dest');
           if(nestedParam){
@@ -432,8 +519,16 @@
             if(nested && !isAggregatorUrl(nested) && !isLikelyImageUrl(nested)) return nested;
           }
         }
-        if(isAggregatorUrl(resolved) || isLikelyImageUrl(resolved)) return '';
-        return resolved;
+
+        if(isAggregatorUrl(original) || (resolved && isAggregatorUrl(resolved))){
+          const aggregatorCandidate = decodeAggregatorLink(resolved || value || original, original);
+          if(aggregatorCandidate) return aggregatorCandidate;
+          const fallback = decodeAggregatorLink(value, original) || decodeAggregatorLink(original, original);
+          if(fallback) return fallback;
+        }
+
+        if(resolved && resolved !== original && !isLikelyImageUrl(resolved)) return resolved;
+        return '';
       }
 
       function extractRedirectUrl(doc, originalLink, html){
@@ -548,11 +643,95 @@
         return true;
       }
 
-      function showNoPreview(el, text){
+      function clamp(value, min, max){
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function hashCode(str){
+        let hash = 0;
+        const input = (str || '').trim();
+        for(let i = 0; i < input.length; i++){
+          hash = (hash << 5) - hash + input.charCodeAt(i);
+          hash |= 0;
+        }
+        return Math.abs(hash);
+      }
+
+      function wrapTitleLines(title, maxLength, maxLines){
+        const words = (title || '').trim().split(/\s+/).filter(Boolean);
+        if(words.length === 0) return ['Latest biomedical news'];
+        const lines = [];
+        let current = '';
+        let index = 0;
+        while(index < words.length && lines.length < maxLines){
+          const word = words[index];
+          const candidate = current ? current + ' ' + word : word;
+          if(candidate.length <= maxLength || !current){
+            current = candidate;
+            index += 1;
+          } else {
+            lines.push(current);
+            current = '';
+            if(lines.length === maxLines - 1){
+              break;
+            }
+          }
+        }
+        if(current && lines.length < maxLines){
+          lines.push(current);
+        }
+        if(lines.length < maxLines && index < words.length){
+          lines.push(words.slice(index).join(' '));
+        }
+        return lines.slice(0, maxLines).map(line => line.trim()).filter(Boolean);
+      }
+
+      function sanitizeSvgText(str){
+        return (str || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[ch]));
+      }
+
+      function generatedPreviewDataUrl(item){
+        if(!item) return '';
+        const title = (item.title || '(untitled)').trim();
+        const source = (item.source || hostFrom(item.link) || 'Angers Lab News').trim();
+        const hash = hashCode(title + '|' + source);
+        const hue = hash % 360;
+        const hue2 = (hue + 38) % 360;
+        const sat = clamp(55 + (hash % 18), 45, 70);
+        const light = clamp(48 + (hash % 10), 42, 60);
+        const gradA = `hsl(${hue}, ${sat}%, ${light + 8}%)`;
+        const gradB = `hsl(${hue2}, ${sat + 8}%, ${light - 10}%)`;
+        const lines = wrapTitleLines(title, 28, 3).map(sanitizeSvgText);
+        const safeSource = sanitizeSvgText(source);
+        const svg = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="${sanitizeSvgText(title)}">` +
+            `<defs>` +
+              `<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+                `<stop offset="0%" stop-color="${gradA}"/>` +
+                `<stop offset="100%" stop-color="${gradB}"/>` +
+              `</linearGradient>` +
+            `</defs>` +
+            `<rect width="960" height="540" rx="60" fill="url(#g)"/>` +
+            `<g fill="rgba(255,255,255,0.92)" font-family="'Segoe UI', 'Inter', system-ui" font-weight="600">` +
+              `<text x="60" y="120" font-size="32" opacity="0.8">${safeSource}</text>` +
+              `<text x="60" y="220" font-size="56" line-height="1.2">` +
+                lines.map((line, idx) => `<tspan x="60" dy="${idx === 0 ? 0 : 68}">${line}</tspan>`).join('') +
+              `</text>` +
+            `</g>` +
+          `</svg>`;
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+      }
+
+      function showNoPreview(el, text, item){
         if(!el) return;
         Array.from(el.querySelectorAll('img')).forEach(img => img.remove());
         el.classList.remove('has-image');
         el.classList.add('is-empty');
+        const generated = generatedPreviewDataUrl(item);
+        if(generated){
+          const ok = displayPreviewImage(el, generated, document.baseURI, () => ensureThumbFallback(el, text || 'Preview unavailable'));
+          if(ok) return;
+        }
         ensureThumbFallback(el, text || 'Preview unavailable');
       }
 
@@ -573,6 +752,13 @@
         const seen = visited || new Set();
         if(seen.has(link)) return '';
         seen.add(link);
+        if(isAggregatorUrl(link)){
+          const decoded = decodeAggregatorLink(link, link);
+          if(decoded && !seen.has(decoded)){
+            const redirected = await discoverPreview(decoded, seen);
+            if(redirected) return redirected;
+          }
+        }
         try{
           const res = await proxyFetch(link);
           if(!res.ok) throw new Error('HTTP '+res.status);
@@ -801,10 +987,11 @@
           art.className = 'news-card';
           const main = document.createElement('div');
           main.className = 'news-main';
-          const aside = document.createElement('div');
-          aside.className = 'news-aside';
+          const header = document.createElement('div');
+          header.className = 'news-header';
 
           const h = document.createElement('h3');
+          h.className = 'news-title';
           const a = document.createElement('a');
           a.href = it.link || '#';
           a.rel = 'noopener noreferrer';
@@ -817,9 +1004,6 @@
           const src = it.source || (it.link ? new URL(it.link).host.replace(/^www\./,'') : '');
           meta.textContent = [src, fmtDate(it.pubDate)].filter(Boolean).join(' · ');
 
-          main.appendChild(h);
-          main.appendChild(meta);
-
           const preview = document.createElement(it.link ? 'a' : 'div');
           preview.className = 'news-thumb';
           if(it.link){
@@ -829,7 +1013,11 @@
             preview.setAttribute('aria-label', 'Open "' + (it.title || 'article') + '" in new tab');
           }
           ensureThumbFallback(preview, it.link ? 'Loading preview…' : 'Preview unavailable');
-          aside.appendChild(preview);
+          header.appendChild(h);
+          header.appendChild(preview);
+
+          main.appendChild(header);
+          main.appendChild(meta);
 
           const action = document.createElement('div');
           action.className = 'news-actions';
@@ -840,25 +1028,24 @@
           chip.rel = 'noopener noreferrer';
           chip.textContent = 'Read';
           action.appendChild(chip);
-          aside.appendChild(action);
+          main.appendChild(action);
 
           art.appendChild(main);
-          art.appendChild(aside);
           listEl.appendChild(art);
 
           const baseUrl = it.link || document.baseURI;
           const inlineImage = directImageFromItem(it);
           const showInlineFallback = (noLink = false) => {
-            if(noLink){ showNoPreview(preview, 'No link available'); return; }
+            if(noLink){ showNoPreview(preview, 'No link available', it); return; }
             if(inlineImage){
-              const ok = displayPreviewImage(preview, inlineImage, baseUrl, () => showNoPreview(preview));
-              if(!ok){ showNoPreview(preview); }
-            } else { showNoPreview(preview); }
+              const ok = displayPreviewImage(preview, inlineImage, baseUrl, () => showNoPreview(preview, undefined, it));
+              if(!ok){ showNoPreview(preview, undefined, it); }
+            } else { showNoPreview(preview, undefined, it); }
           };
           if(it.link){
             ensureThumbFallback(preview, 'Loading preview…');
             getPreviewImage(it.link).then(src => {
-              if(src && displayPreviewImage(preview, src, it.link, showInlineFallback)) return;
+              if(src && displayPreviewImage(preview, src, it.link, () => showInlineFallback())) return;
               showInlineFallback();
             });
           } else { showInlineFallback(true); }
