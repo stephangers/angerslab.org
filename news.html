@@ -379,10 +379,9 @@
         try {
           const parsed = new URL(url, document.baseURI);
           if(parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
-          const normalizedHost = parsed.host.replace(/^www\./, '');
-          if(normalizedHost === 'images.weserv.nl') return '';
-          const prefix = parsed.protocol === 'https:' ? 'ssl:' : '';
-          const proxyTarget = prefix + parsed.host + parsed.pathname + (parsed.search || '') + (parsed.hash || '');
+          const host = parsed.host.replace(/^www\./, '');
+          if(host === 'images.weserv.nl') return '';
+          const proxyTarget = parsed.host + parsed.pathname + (parsed.search || '') + (parsed.hash || '');
           return 'https://images.weserv.nl/?url=' + encodeURIComponent(proxyTarget) + '&w=1080&h=608&fit=cover&we=1';
         } catch { return ''; }
       }
