@@ -549,11 +549,95 @@
         return true;
       }
 
-      function showNoPreview(el, text){
+      function clamp(value, min, max){
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function hashCode(str){
+        let hash = 0;
+        const input = (str || '').trim();
+        for(let i = 0; i < input.length; i++){
+          hash = (hash << 5) - hash + input.charCodeAt(i);
+          hash |= 0;
+        }
+        return Math.abs(hash);
+      }
+
+      function wrapTitleLines(title, maxLength, maxLines){
+        const words = (title || '').trim().split(/\s+/).filter(Boolean);
+        if(words.length === 0) return ['Latest biomedical news'];
+        const lines = [];
+        let current = '';
+        let index = 0;
+        while(index < words.length && lines.length < maxLines){
+          const word = words[index];
+          const candidate = current ? current + ' ' + word : word;
+          if(candidate.length <= maxLength || !current){
+            current = candidate;
+            index += 1;
+          } else {
+            lines.push(current);
+            current = '';
+            if(lines.length === maxLines - 1){
+              break;
+            }
+          }
+        }
+        if(current && lines.length < maxLines){
+          lines.push(current);
+        }
+        if(lines.length < maxLines && index < words.length){
+          lines.push(words.slice(index).join(' '));
+        }
+        return lines.slice(0, maxLines).map(line => line.trim()).filter(Boolean);
+      }
+
+      function sanitizeSvgText(str){
+        return (str || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[ch]));
+      }
+
+      function generatedPreviewDataUrl(item){
+        if(!item) return '';
+        const title = (item.title || '(untitled)').trim();
+        const source = (item.source || hostFrom(item.link) || 'Angers Lab News').trim();
+        const hash = hashCode(title + '|' + source);
+        const hue = hash % 360;
+        const hue2 = (hue + 38) % 360;
+        const sat = clamp(55 + (hash % 18), 45, 70);
+        const light = clamp(48 + (hash % 10), 42, 60);
+        const gradA = `hsl(${hue}, ${sat}%, ${light + 8}%)`;
+        const gradB = `hsl(${hue2}, ${sat + 8}%, ${light - 10}%)`;
+        const lines = wrapTitleLines(title, 28, 3).map(sanitizeSvgText);
+        const safeSource = sanitizeSvgText(source);
+        const svg = `<?xml version="1.0" encoding="UTF-8"?>\n` +
+          `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="${sanitizeSvgText(title)}">` +
+            `<defs>` +
+              `<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+                `<stop offset="0%" stop-color="${gradA}"/>` +
+                `<stop offset="100%" stop-color="${gradB}"/>` +
+              `</linearGradient>` +
+            `</defs>` +
+            `<rect width="960" height="540" rx="60" fill="url(#g)"/>` +
+            `<g fill="rgba(255,255,255,0.92)" font-family="'Segoe UI', 'Inter', system-ui" font-weight="600">` +
+              `<text x="60" y="120" font-size="32" opacity="0.8">${safeSource}</text>` +
+              `<text x="60" y="220" font-size="56" line-height="1.2">` +
+                lines.map((line, idx) => `<tspan x="60" dy="${idx === 0 ? 0 : 68}">${line}</tspan>`).join('') +
+              `</text>` +
+            `</g>` +
+          `</svg>`;
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+      }
+
+      function showNoPreview(el, text, item){
         if(!el) return;
         Array.from(el.querySelectorAll('img')).forEach(img => img.remove());
         el.classList.remove('has-image');
         el.classList.add('is-empty');
+        const generated = generatedPreviewDataUrl(item);
+        if(generated){
+          const ok = displayPreviewImage(el, generated, document.baseURI, () => ensureThumbFallback(el, text || 'Preview unavailable'));
+          if(ok) return;
+        }
         ensureThumbFallback(el, text || 'Preview unavailable');
       }
 
@@ -851,16 +935,16 @@
           const baseUrl = it.link || document.baseURI;
           const inlineImage = directImageFromItem(it);
           const showInlineFallback = (noLink = false) => {
-            if(noLink){ showNoPreview(preview, 'No link available'); return; }
+            if(noLink){ showNoPreview(preview, 'No link available', it); return; }
             if(inlineImage){
-              const ok = displayPreviewImage(preview, inlineImage, baseUrl, () => showNoPreview(preview));
-              if(!ok){ showNoPreview(preview); }
-            } else { showNoPreview(preview); }
+              const ok = displayPreviewImage(preview, inlineImage, baseUrl, () => showNoPreview(preview, undefined, it));
+              if(!ok){ showNoPreview(preview, undefined, it); }
+            } else { showNoPreview(preview, undefined, it); }
           };
           if(it.link){
             ensureThumbFallback(preview, 'Loading preview…');
             getPreviewImage(it.link).then(src => {
-              if(src && displayPreviewImage(preview, src, it.link, showInlineFallback)) return;
+              if(src && displayPreviewImage(preview, src, it.link, () => showInlineFallback())) return;
               showInlineFallback();
             });
           } else { showInlineFallback(true); }
