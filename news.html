@@ -183,6 +183,28 @@
         return /(image|photo|media|thumbnail|uploads|wp-content|cdn|static|assets|img)/i.test(normalized);
       }
 
+      function isProbablyTinyImage(url){
+        const trimmed = (url || '').trim();
+        if(!trimmed) return false;
+        const lower = trimmed.toLowerCase();
+        if(/favicon|sprite|avatar|\/ads\//.test(lower)) return true;
+        try {
+          const parsed = new URL(trimmed, document.baseURI);
+          if(parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+          const dims = [];
+          parsed.searchParams.forEach((value, key) => {
+            if(/^(w|width|h|height|size|s)$/i.test(key)){
+              const num = parseInt(value, 10);
+              if(isFinite(num)) dims.push(num);
+            }
+          });
+          if(dims.length && dims.every(num => num > 0 && num <= 96)) return true;
+          const path = parsed.pathname.toLowerCase();
+          if(/\b(icon|avatar|favicon)\b/.test(path)) return true;
+        } catch { /* ignore */ }
+        return false;
+      }
+
       function chooseFromSrcset(value){
         if(!value || typeof value !== 'string') return '';
         const entries = value.split(',').map(part => {
@@ -349,6 +371,18 @@
           }
           const target = normalized.protocol + '//' + normalized.host + normalized.pathname + normalized.search + normalized.hash;
           return 'https://r.jina.ai/' + target;
+        } catch { return ''; }
+      }
+
+      function proxiedImageUrl(url){
+        if(!url) return '';
+        try {
+          const parsed = new URL(url, document.baseURI);
+          if(parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return '';
+          const host = parsed.host.replace(/^www\./, '');
+          if(host === 'images.weserv.nl') return '';
+          const proxyTarget = parsed.host + parsed.pathname + (parsed.search || '') + (parsed.hash || '');
+          return 'https://images.weserv.nl/?url=' + encodeURIComponent(proxyTarget) + '&w=1080&h=608&fit=cover&we=1';
         } catch { return ''; }
       }
 
@@ -574,6 +608,39 @@
         return '';
       }
 
+      function findImageUrlsInText(text, base){
+        if(typeof text !== 'string' || !text.trim()) return [];
+        const seen = new Set();
+        const results = [];
+        const push = raw => {
+          if(!raw || seen.has(raw)) return;
+          const cleaned = raw.replace(/&amp;/g, '&').trim();
+          const resolved = resolveUrlMaybe(cleaned, base);
+          if(!resolved || !isLikelyImageUrl(resolved) || isProbablyTinyImage(resolved)) return;
+          seen.add(raw);
+          results.push(resolved);
+        };
+        const attrRegex = /\b(?:srcset|data-srcset)=(["'])([^"']+)\1/gi;
+        let match;
+        while((match = attrRegex.exec(text))){
+          const chosen = chooseFromSrcset(match[2]);
+          if(chosen) push(chosen);
+        }
+        const simpleAttr = /\b(?:src|data-src|data-original|data-image|data-photo|content|href)=(["'])([^"']+)\1/gi;
+        while((match = simpleAttr.exec(text))){
+          if(match[2]) push(match[2]);
+        }
+        const mdRegex = /!\[[^\]]*\]\(([^)]+)\)/g;
+        while((match = mdRegex.exec(text))){
+          if(match[1]) push(match[1]);
+        }
+        const urlRegex = /https?:\/\/[^\s"'<>)+]+/g;
+        while((match = urlRegex.exec(text))){
+          push(match[0]);
+        }
+        return results;
+      }
+
       function directImageFromItem(item){
         if(!item || typeof item !== 'object') return '';
         const candidates = [
@@ -584,7 +651,10 @@
           item['media:thumbnail'] && item['media:thumbnail'].url
         ];
         for(const candidate of candidates){
-          if(typeof candidate === 'string' && candidate.trim()) return candidate.trim();
+          if(typeof candidate !== 'string') continue;
+          const trimmed = candidate.trim();
+          if(!trimmed || isProbablyTinyImage(trimmed)) continue;
+          return trimmed;
         }
         const htmlSnippets = [item.description, item.summary, item.content, item.contentSnippet, item['content:encoded']];
         for(const snippet of htmlSnippets){
@@ -598,6 +668,8 @@
               const fromImg = bestFromImageElement(inlineImg);
               if(fromImg) return fromImg;
             }
+            const textImgs = findImageUrlsInText(snippet, document.baseURI);
+            if(textImgs.length) return textImgs[0];
           } catch {
             /* ignore snippet parse errors */
           }
@@ -619,8 +691,22 @@
 
       function displayPreviewImage(el, src, base, onError){
         if(!el) return false;
-        const resolved = resolveUrlMaybe(src, base || document.baseURI);
+        const original = (src || '').trim();
+        const resolved = /^data:/i.test(original) ? original : resolveUrlMaybe(original, base || document.baseURI);
         if(!resolved) return false;
+        const sources = [];
+        const seen = new Set();
+        const push = value => {
+          if(!value || seen.has(value)) return;
+          seen.add(value);
+          sources.push(value);
+        };
+        push(resolved);
+        if(!/^data:/i.test(resolved)){
+          const proxy = proxiedImageUrl(resolved);
+          if(proxy) push(proxy);
+        }
+        if(!sources.length) return false;
         ensureThumbFallback(el, 'Loading preview…');
         Array.from(el.querySelectorAll('img')).forEach(img => img.remove());
         el.classList.remove('is-empty');
@@ -630,16 +716,30 @@
         img.loading = 'lazy';
         img.decoding = 'async';
         img.referrerPolicy = 'no-referrer';
-        img.src = resolved;
         el.appendChild(img);
-        img.addEventListener('load', () => { el.classList.add('has-image'); }, { once:true });
-        img.addEventListener('error', () => {
+        const handleFailure = () => {
           img.remove();
           el.classList.remove('has-image');
           el.classList.add('is-empty');
-          ensureThumbFallback(el, 'Preview unavailable');
           if(typeof onError === 'function') onError();
-        }, { once:true });
+          else ensureThumbFallback(el, 'Preview unavailable');
+        };
+        const tryNext = () => {
+          if(!sources.length){
+            handleFailure();
+            return;
+          }
+          img.src = sources.shift();
+        };
+        img.addEventListener('load', () => { el.classList.add('has-image'); }, { once:true });
+        img.addEventListener('error', () => {
+          if(sources.length){
+            tryNext();
+            return;
+          }
+          handleFailure();
+        });
+        tryNext();
         return true;
       }
 
@@ -765,20 +865,23 @@
           const html = await res.text();
           const doc = new DOMParser().parseFromString(html, 'text/html');
           const candidates = [];
+          const seenCandidates = new Set();
+          const addCandidate = raw => {
+            if(!raw) return;
+            const resolved = resolveUrlMaybe(raw, link);
+            if(!resolved || seenCandidates.has(resolved) || isProbablyTinyImage(resolved)) return;
+            seenCandidates.add(resolved);
+            candidates.push(resolved);
+          };
           const meta = findMetaImage(doc);
-          if(meta){
-            const resolved = resolveUrlMaybe(meta, link);
-            if(resolved) candidates.push(resolved);
-          }
+          if(meta) addCandidate(meta);
           const jsonLd = findJsonLdImage(doc);
-          if(jsonLd){
-            const resolved = resolveUrlMaybe(jsonLd, link);
-            if(resolved) candidates.push(resolved);
-          }
+          if(jsonLd) addCandidate(jsonLd);
           const docImage = findDocumentImage(doc);
-          if(docImage){
-            const resolved = resolveUrlMaybe(docImage, link);
-            if(resolved) candidates.push(resolved);
+          if(docImage) addCandidate(docImage);
+          const textImages = findImageUrlsInText(html, link);
+          if(textImages.length){
+            textImages.forEach(addCandidate);
           }
           const redirect = extractRedirectUrl(doc, link, html);
           if(redirect && !seen.has(redirect)){
@@ -1012,7 +1115,9 @@
             preview.rel = 'noopener noreferrer';
             preview.setAttribute('aria-label', 'Open "' + (it.title || 'article') + '" in new tab');
           }
-          ensureThumbFallback(preview, it.link ? 'Loading preview…' : 'Preview unavailable');
+          if(!it.link){
+            ensureThumbFallback(preview, 'Preview unavailable');
+          }
           header.appendChild(h);
           header.appendChild(preview);
 
@@ -1035,20 +1140,42 @@
 
           const baseUrl = it.link || document.baseURI;
           const inlineImage = directImageFromItem(it);
-          const showInlineFallback = (noLink = false) => {
-            if(noLink){ showNoPreview(preview, 'No link available', it); return; }
-            if(inlineImage){
-              const ok = displayPreviewImage(preview, inlineImage, baseUrl, () => showNoPreview(preview, undefined, it));
-              if(!ok){ showNoPreview(preview, undefined, it); }
-            } else { showNoPreview(preview, undefined, it); }
+          let inlineAttempted = false;
+          let inlineLoaded = false;
+          const useGeneratedFallback = (message) => showNoPreview(preview, message, it);
+          const tryInline = (force = false) => {
+            if(!inlineImage) return false;
+            if(!inlineAttempted || force || !inlineLoaded){
+              inlineAttempted = true;
+              inlineLoaded = displayPreviewImage(preview, inlineImage, baseUrl, () => {
+                inlineLoaded = false;
+                useGeneratedFallback();
+              });
+            }
+            return inlineLoaded;
           };
-          if(it.link){
+
+          if(inlineImage){
+            tryInline();
+          } else if(it.link){
             ensureThumbFallback(preview, 'Loading preview…');
+          }
+
+          if(it.link){
             getPreviewImage(it.link).then(src => {
-              if(src && displayPreviewImage(preview, src, it.link, () => showInlineFallback())) return;
-              showInlineFallback();
+              if(src){
+                inlineLoaded = false;
+                if(displayPreviewImage(preview, src, it.link, () => {
+                  if(!tryInline()) useGeneratedFallback();
+                })) return;
+              }
+              if(!tryInline()) useGeneratedFallback();
+            }).catch(() => {
+              if(!tryInline()) useGeneratedFallback();
             });
-          } else { showInlineFallback(true); }
+          } else if(!tryInline()){
+            useGeneratedFallback('No link available');
+          }
         }
       } catch (err){
         statusEl.textContent = 'Failed to load news: ' + err.message;
