@@ -274,7 +274,7 @@ body.no-scroll { overflow: hidden; }
     const DATA_URL = 'assets/data/people.json';
     const fallback = [
   // NOTE: Fallback only shows if data/people.json is missing; includes details fields
-      { name:'Stéphane Angers, PhD', role:'Professor & Principal Investigator', group:'faculty', raised:'', education:'', interests:'', pastimes:'', initials:'SA', photo:'assets/images/people/stephane-angers.jpg', linkedin:'#', scholar:'#', orcid:'#', tags:['Wnt/Frizzled','Protein engineering','Genomics'] },
+      { name:'Stéphane Angers, PhD', role:'Professor & Principal Investigator', group:'faculty', raised:'', education:'', interests:'', pastimes:'', initials:'SA', photo:'assets/images/people/stephane-angers.jpg', linkedin:'#', scholar:'#', orcid:'#', email:'stephane.angers@utoronto.ca', tags:['Wnt/Frizzled','Protein engineering','Genomics'] },
       { name:'Postdoctoral Fellow', role:'Recruiting now', group:'postdoc', raised:'', education:'', interests:'', pastimes:'', initials:'PD', photo:'', linkedin:'#', tags:['Signalosomes','CRISPR'] },
       { name:'Graduate Student', role:'Molecular Genetics', group:'grad', raised:'', education:'', interests:'', pastimes:'', initials:'GS', photo:'', linkedin:'#', tags:['LRP6','Proteomics'] },
       { name:'Research Associate', role:'Protein expression & screening', group:'staff', raised:'', education:'', pastimes:'', initials:'RA', photo:'', linkedin:'#', tags:['Antibodies','Purification'] },
@@ -282,6 +282,7 @@ body.no-scroll { overflow: hidden; }
     ];
 
     const icons = {
+      email:`<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 5a2 2 0 012-2h16a2 2 0 012 2v14a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm2 0v.217l8 5.2 8-5.2V5H4zm16 2.783l-7.445 4.839a1.5 1.5 0 01-1.11.247 1.5 1.5 0 01-1.11-.247L3 7.783V19h17z"/></svg>`,
       linkedin:`<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5zM0 8h5v16H0zM8 8h4.8v2.2h.07c.67-1.27 2.3-2.6 4.73-2.6 5.06 0 6 3.33 6 7.66V24h-5V16.4c0-1.81-.03-4.14-2.52-4.14-2.52 0-2.9 1.97-2.9 4v7.74H8V8z"/></svg>`,
       scholar:`<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L1 9l11 7 9-5.73V17h2V9L12 2zm0 9L3.74 9 12 4.26 20.26 9 12 11z"/></svg>`,
       orcid:`<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-2.9 6.3h1.7v7.4H9.1V8.3zm2.9 0h3.2c2 0 3.4 1.3 3.4 3.3s-1.4 3.3-3.4 3.3H12V8.3zm1.7 1.5v4.4h1.5c1.2 0 2-.8 2-2.2s-.8-2.2-2-2.2h-1.5z"/></svg>`
@@ -329,8 +330,9 @@ body.no-scroll { overflow: hidden; }
     `;
   box.appendChild(details);
 
-const links = document.createElement('div');
+      const links = document.createElement('div');
       links.className = 'links';
+      if(p.email)    links.insertAdjacentHTML('beforeend', `<a href="mailto:${p.email}" aria-label="Email">${icons.email}<span>Email</span></a>`);
       if(p.linkedin) links.insertAdjacentHTML('beforeend', `<a href="${p.linkedin}" target="_blank" rel="noopener" aria-label="LinkedIn">${icons.linkedin}<span>LinkedIn</span></a>`);
       if(p.scholar)  links.insertAdjacentHTML('beforeend', `<a href="${p.scholar}" target="_blank" rel="noopener" aria-label="Google Scholar">${icons.scholar}<span>Scholar</span></a>`);
       if(p.orcid)    links.insertAdjacentHTML('beforeend', `<a href="${p.orcid}" target="_blank" rel="noopener" aria-label="ORCID">${icons.orcid}<span>ORCID</span></a>`);
@@ -351,7 +353,7 @@ const links = document.createElement('div');
       grid.innerHTML='';
       let rows = state.people.filter(p=>{
         if((state.group === 'all' && p.group === 'alumni') || (state.group !== 'all' && p.group !== state.group)) return false;
-        if(state.q){ const q = state.q.toLowerCase(); const hay = [p.name,p.role,p.raised,p.education,p.interests,p.pastimes].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
+        if(state.q){ const q = state.q.toLowerCase(); const hay = [p.name,p.role,p.raised,p.education,p.interests,p.pastimes,p.email].filter(Boolean).join(' ').toLowerCase(); if(!hay.includes(q)) return false; }
         return true;
       });
       // keep a pleasant order: faculty, postdoc, grad, staff, alumni
