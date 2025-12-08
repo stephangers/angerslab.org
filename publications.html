@@ -79,6 +79,8 @@ h1 { font-size: clamp(28px, 4.5vw, 54px); margin: 14px 0 12px; line-height: 1.05
 .pubs { display: grid; gap: 12px; }
 .pub { background: var(--panel); border: 1px solid color-mix(in oklab, var(--text) 10%, transparent); border-radius: 14px; padding: 14px; box-shadow: var(--shadow); }
 .pub a { word-break: break-word; }
+.lab-member { text-decoration: underline; text-decoration-color: var(--brand); text-decoration-thickness: 0.12em; }
+.journal { font-weight: 700; }
 .no-results { display:none; color: var(--muted); margin-top: 12px; }
 footer { border-top: 1px solid color-mix(in oklab, var(--text) 10%, transparent); padding: 18px 0 32px; color: var(--muted); }
 .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; }
@@ -474,6 +476,50 @@ function toggleMenu() {
     });
     nores.style.display = shown ? 'none' : '';
   });
+})();
+
+// Underline lab-affiliated authors using names from people.json
+(async function(){
+  const DATA_URL = 'assets/data/people.json';
+  const metas = Array.from(document.querySelectorAll('.pub .meta'));
+  if (!metas.length) return;
+
+  const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const stripAccents = (s) => s.normalize('NFD').replace(/\p{Diacritic}+/gu, '');
+  const normalize = (s) => (s||'').toLowerCase()
+    .replace(/^dr\.\s*/i, '')
+    .replace(/,?\s*ph\.?d\.?/i, '')
+    .trim();
+
+  try {
+    const res = await fetch(DATA_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('failed to load people data');
+    const people = await res.json();
+    const names = new Set();
+    people.forEach(p => {
+      const clean = normalize(p.name);
+      if (!clean) return;
+      const variants = new Set([clean, stripAccents(clean)]);
+      const bits = clean.split(/\s+/).filter(Boolean);
+      if (bits.length >= 2) {
+        const initLast = `${bits[0][0]} ${bits[bits.length - 1]}`;
+        variants.add(initLast);
+        variants.add(stripAccents(initLast));
+      }
+      variants.forEach(v => names.add(v));
+    });
+
+    metas.forEach(el => {
+      let html = el.innerHTML;
+      names.forEach(name => {
+        const regex = new RegExp(`\\b${escapeRegExp(name)}\\b`, 'gi');
+        html = html.replace(regex, (match) => `<u class="lab-member">${match}</u>`);
+      });
+      el.innerHTML = html;
+    });
+  } catch (err) {
+    console.warn('[publications] unable to underline lab authors', err);
+  }
 })();
 </script>
 </body>
