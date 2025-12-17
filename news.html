@@ -397,6 +397,12 @@
         try { return new URL(url).host.replace(/^www\./,''); } catch { return ''; }
       }
 
+      function buildFaviconUrl(url){
+        const host = hostFrom(url);
+        if(!host) return '';
+        return 'https://www.google.com/s2/favicons?sz=256&domain_url=' + encodeURIComponent('https://' + host);
+      }
+
       function isAggregatorUrl(url){
         try {
           const host = new URL(url).host;
@@ -827,6 +833,11 @@
         Array.from(el.querySelectorAll('img')).forEach(img => img.remove());
         el.classList.remove('has-image');
         el.classList.add('is-empty');
+        const favicon = buildFaviconUrl(item && item.link);
+        if(favicon){
+          const ok = displayPreviewImage(el, favicon, document.baseURI, () => showNoPreview(el, text, Object.assign({}, item, { link:'' })));
+          if(ok) return;
+        }
         const generated = generatedPreviewDataUrl(item);
         if(generated){
           const ok = displayPreviewImage(el, generated, document.baseURI, () => ensureThumbFallback(el, text || 'Preview unavailable'));
