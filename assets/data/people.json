@@ -31,7 +31,7 @@
     "role": "Research Technician",
     "photo": "assets/images/people/sichun-lin.jpg",
     "group": "staff",
-    "raised": "Gongan, Hubei, China \ud83c\udde8\ud83c\uddf3",
+    "raised": "Gongan, Hubei, China \&#x1F1EF;&#x1F1F5;",
     "education": "B.Sc. (Hubei University, China), B.Sc. (University of Toronto, Scarborough Campus), M.Sc. (McMaster University)",
     "interests": "Essential genes, telomeres, DNA damages, and signalling pathways",
     "pastimes": "Watching ATP tennis, and PGA golf",
@@ -52,7 +52,7 @@
     "scholar": "",
     "orcid": ""
    },  
-  {
+   {
     "name": "Dr. Maira Pedroso De Almeida",
     "role": "Post-doctoral Fellow",
     "photo": "assets/images/people/Maira-pedroso.jpg",
