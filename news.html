@@ -884,12 +884,12 @@
             seenCandidates.add(resolved);
             candidates.push(resolved);
           };
+          const docImage = findDocumentImage(doc);
+          if(docImage) addCandidate(docImage);
           const meta = findMetaImage(doc);
           if(meta) addCandidate(meta);
           const jsonLd = findJsonLdImage(doc);
           if(jsonLd) addCandidate(jsonLd);
-          const docImage = findDocumentImage(doc);
-          if(docImage) addCandidate(docImage);
           const textImages = findImageUrlsInText(html, link);
           if(textImages.length){
             textImages.forEach(addCandidate);
