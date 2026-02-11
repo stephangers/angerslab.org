@@ -858,6 +858,32 @@
         return '';
       }
 
+      function scoreImageCandidate(url, context){
+        const source = (url || '').trim();
+        if(!source) return Number.NEGATIVE_INFINITY;
+        let score = 0;
+        const lower = source.toLowerCase();
+        if(/\.(avif|webp|jpe?g|png)(?:$|[?#])/i.test(lower)) score += 4;
+        if(/(hero|featured|cover|lead|main|article)/i.test(lower)) score += 7;
+        if(/(logo|icon|avatar|sprite|placeholder)/i.test(lower)) score -= 12;
+        if(context === 'meta') score += 9;
+        if(context === 'jsonld') score += 8;
+        if(context === 'document') score += 5;
+        if(context === 'text') score += 2;
+        try {
+          const parsed = new URL(source, document.baseURI);
+          const numericParams = ['w', 'width', 'h', 'height'];
+          const dims = numericParams.map(key => parseInt(parsed.searchParams.get(key) || '', 10)).filter(Number.isFinite);
+          if(dims.length){
+            const large = dims.some(value => value >= 600);
+            const tiny = dims.every(value => value > 0 && value <= 120);
+            if(large) score += 4;
+            if(tiny) score -= 8;
+          }
+        } catch { /* ignore */ }
+        return score;
+      }
+
       async function discoverPreview(link, visited){
         if(!link) return '';
         const seen = visited || new Set();
@@ -877,29 +903,32 @@
           const doc = new DOMParser().parseFromString(html, 'text/html');
           const candidates = [];
           const seenCandidates = new Set();
-          const addCandidate = raw => {
+          const addCandidate = (raw, context) => {
             if(!raw) return;
             const resolved = resolveUrlMaybe(raw, link);
             if(!resolved || seenCandidates.has(resolved) || isProbablyTinyImage(resolved)) return;
             seenCandidates.add(resolved);
-            candidates.push(resolved);
+            candidates.push({ url: resolved, score: scoreImageCandidate(resolved, context) });
           };
-          const docImage = findDocumentImage(doc);
-          if(docImage) addCandidate(docImage);
           const meta = findMetaImage(doc);
-          if(meta) addCandidate(meta);
+          if(meta) addCandidate(meta, 'meta');
           const jsonLd = findJsonLdImage(doc);
-          if(jsonLd) addCandidate(jsonLd);
+          if(jsonLd) addCandidate(jsonLd, 'jsonld');
+          const docImage = findDocumentImage(doc);
+          if(docImage) addCandidate(docImage, 'document');
           const textImages = findImageUrlsInText(html, link);
           if(textImages.length){
-            textImages.forEach(addCandidate);
+            textImages.forEach(src => addCandidate(src, 'text'));
           }
           const redirect = extractRedirectUrl(doc, link, html);
           if(redirect && !seen.has(redirect)){
             const redirected = await discoverPreview(redirect, seen);
             if(redirected) return redirected;
           }
-          for(const candidate of candidates){ if(candidate) return candidate; }
+          if(candidates.length){
+            candidates.sort((a, b) => b.score - a.score);
+            return candidates[0].url;
+          }
         }catch(err){ console.warn('Preview image fetch failed', link, err); }
         return '';
       }
