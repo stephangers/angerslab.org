@@ -149,6 +149,7 @@
       ];
 
       const PREVIEW_CACHE = new Map();
+      const ARTICLE_LINK_CACHE = new Map();
       const PREVIEW_META_SELECTORS = [
         'meta[property="og:image:secure_url"]',
         'meta[property="og:image:url"]',
@@ -833,14 +834,17 @@
         Array.from(el.querySelectorAll('img')).forEach(img => img.remove());
         el.classList.remove('has-image');
         el.classList.add('is-empty');
-        const favicon = buildFaviconUrl(item && item.link);
-        if(favicon){
-          const ok = displayPreviewImage(el, favicon, document.baseURI, () => showNoPreview(el, text, Object.assign({}, item, { link:'' })));
-          if(ok) return;
-        }
+
         const generated = generatedPreviewDataUrl(item);
         if(generated){
           const ok = displayPreviewImage(el, generated, document.baseURI, () => ensureThumbFallback(el, text || 'Preview unavailable'));
+          if(ok) return;
+        }
+
+        const faviconLink = item && item.link && !isAggregatorUrl(item.link) ? item.link : '';
+        const favicon = buildFaviconUrl(faviconLink);
+        if(favicon){
+          const ok = displayPreviewImage(el, favicon, document.baseURI, () => ensureThumbFallback(el, text || 'Preview unavailable'));
           if(ok) return;
         }
         ensureThumbFallback(el, text || 'Preview unavailable');
@@ -933,11 +937,76 @@
         return '';
       }
 
+      async function discoverMicrolinkPreview(link){
+        if(!link) return '';
+        try {
+          const endpoint = 'https://api.microlink.io/?url=' + encodeURIComponent(link) + '&screenshot=true&meta=true';
+          const res = await fetch(endpoint, { cache:'no-cache' });
+          if(!res.ok) return '';
+          const payload = await res.json();
+          if(!payload || payload.status !== 'success' || !payload.data) return '';
+          const data = payload.data;
+          const candidates = [
+            data.image && (typeof data.image === 'string' ? data.image : data.image.url),
+            data.screenshot && (typeof data.screenshot === 'string' ? data.screenshot : data.screenshot.url),
+            data.logo && (typeof data.logo === 'string' ? data.logo : data.logo.url)
+          ];
+          for(const raw of candidates){
+            if(typeof raw !== 'string') continue;
+            const resolved = resolveUrlMaybe(raw, link);
+            if(!resolved || isProbablyTinyImage(resolved)) continue;
+            if(isLikelyImageUrl(resolved) || /^https?:\/\//i.test(resolved)) return resolved;
+          }
+        } catch {
+          return '';
+        }
+        return '';
+      }
+
       function getPreviewImage(link){
         if(!link) return Promise.resolve('');
         if(PREVIEW_CACHE.has(link)) return PREVIEW_CACHE.get(link);
-        const promise = discoverPreview(link, new Set()).then(src => src || '').catch(() => '');
+        const promise = (async () => {
+          const discovered = await discoverPreview(link, new Set()).then(src => src || '').catch(() => '');
+          if(discovered) return discovered;
+          return discoverMicrolinkPreview(link).then(src => src || '').catch(() => '');
+        })();
         PREVIEW_CACHE.set(link, promise);
+        return promise;
+      }
+
+      async function resolveArticleLink(link, visited){
+        if(!link) return '';
+        const seen = visited || new Set();
+        const normalized = resolveUrlMaybe(link, document.baseURI) || link;
+        if(seen.has(normalized)) return normalized;
+        seen.add(normalized);
+
+        const direct = preferExternalArticleUrl(normalized, normalized);
+        if(direct && direct !== normalized){
+          return resolveArticleLink(direct, seen);
+        }
+
+        try {
+          const response = await proxyFetch(normalized);
+          if(!response.ok) return normalized;
+          const html = await response.text();
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const redirected = extractRedirectUrl(doc, normalized, html);
+          if(redirected && redirected !== normalized){
+            return resolveArticleLink(redirected, seen);
+          }
+        } catch {
+          return normalized;
+        }
+        return normalized;
+      }
+
+      function getPreviewTargetLink(link){
+        if(!link) return Promise.resolve('');
+        if(ARTICLE_LINK_CACHE.has(link)) return ARTICLE_LINK_CACHE.get(link);
+        const promise = resolveArticleLink(link, new Set()).then(target => target || link).catch(() => link);
+        ARTICLE_LINK_CACHE.set(link, promise);
         return promise;
       }
 
@@ -1202,7 +1271,7 @@
           }
 
           if(it.link){
-            getPreviewImage(it.link).then(src => {
+            getPreviewTargetLink(it.link).then(targetLink => getPreviewImage(targetLink || it.link)).then(src => {
               if(src){
                 inlineLoaded = false;
                 if(displayPreviewImage(preview, src, it.link, () => {
