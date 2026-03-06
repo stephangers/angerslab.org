@@ -149,6 +149,7 @@
       ];
 
       const PREVIEW_CACHE = new Map();
+      const ARTICLE_LINK_CACHE = new Map();
       const PREVIEW_META_SELECTORS = [
         'meta[property="og:image:secure_url"]',
         'meta[property="og:image:url"]',
@@ -941,6 +942,41 @@
         return promise;
       }
 
+      async function resolveArticleLink(link, visited){
+        if(!link) return '';
+        const seen = visited || new Set();
+        const normalized = resolveUrlMaybe(link, document.baseURI) || link;
+        if(seen.has(normalized)) return normalized;
+        seen.add(normalized);
+
+        const direct = preferExternalArticleUrl(normalized, normalized);
+        if(direct && direct !== normalized){
+          return resolveArticleLink(direct, seen);
+        }
+
+        try {
+          const response = await proxyFetch(normalized);
+          if(!response.ok) return normalized;
+          const html = await response.text();
+          const doc = new DOMParser().parseFromString(html, 'text/html');
+          const redirected = extractRedirectUrl(doc, normalized, html);
+          if(redirected && redirected !== normalized){
+            return resolveArticleLink(redirected, seen);
+          }
+        } catch {
+          return normalized;
+        }
+        return normalized;
+      }
+
+      function getPreviewTargetLink(link){
+        if(!link) return Promise.resolve('');
+        if(ARTICLE_LINK_CACHE.has(link)) return ARTICLE_LINK_CACHE.get(link);
+        const promise = resolveArticleLink(link, new Set()).then(target => target || link).catch(() => link);
+        ARTICLE_LINK_CACHE.set(link, promise);
+        return promise;
+      }
+
       // Try a local JSON first if you opt to build it via GitHub Actions
       async function tryLocalJSON(){
         try{
@@ -1202,7 +1238,7 @@
           }
 
           if(it.link){
-            getPreviewImage(it.link).then(src => {
+            getPreviewTargetLink(it.link).then(targetLink => getPreviewImage(targetLink || it.link)).then(src => {
               if(src){
                 inlineLoaded = false;
                 if(displayPreviewImage(preview, src, it.link, () => {
