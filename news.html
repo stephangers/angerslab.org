@@ -696,10 +696,22 @@
         return fallback;
       }
 
+      function secureImageUrl(url){
+        if(!url || /^data:/i.test(url)) return url || '';
+        try {
+          const parsed = new URL(url, document.baseURI);
+          if(parsed.protocol === 'http:') parsed.protocol = 'https:';
+          return parsed.href;
+        } catch {
+          return url;
+        }
+      }
+
       function displayPreviewImage(el, src, base, onError){
         if(!el) return false;
         const original = (src || '').trim();
-        const resolved = /^data:/i.test(original) ? original : resolveUrlMaybe(original, base || document.baseURI);
+        const resolvedRaw = /^data:/i.test(original) ? original : resolveUrlMaybe(original, base || document.baseURI);
+        const resolved = secureImageUrl(resolvedRaw);
         if(!resolved) return false;
         const sources = [];
         const seen = new Set();
