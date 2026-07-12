@@ -12,7 +12,7 @@ Notes:
 - Stdlib only; uses ESearch + EFetch (XML) for rich/consistent metadata
 """
 from __future__ import annotations
-import argparse, collections, datetime as dt, html, json, re, sys, time
+import argparse, collections, datetime as dt, html, json, os, re, sys, time, unicodedata
 from typing import Any, Dict, Iterable, List, Set
 import urllib.parse as up, urllib.request as ur
 import xml.etree.ElementTree as ET
@@ -85,18 +85,39 @@ def efetch_records(pmids: Iterable[str], api_key: str|None, email: str|None) -> 
         out.append({"pmid":pmid,"title":title,"journal":journal,"authors":authors,"doi":doi,"year":year})
     return out
 
+def _name_parts(name: str) -> tuple[str, str]:
+    """Return a normalized (given name, surname) pair for conservative matching."""
+    text = unicodedata.normalize("NFKD", name)
+    text = "".join(ch for ch in text if not unicodedata.combining(ch)).lower()
+    text = re.sub(r"\b(?:phd|md|msc|bsc|dphil|dr)\b", " ", text)
+    words = re.findall(r"[a-z]+", text)
+    if len(words) < 2:
+        return "", ""
+    return words[0], words[-1]
+
+
+def _same_person(author: str, lab_name: str) -> bool:
+    """Allow accents and middle names/initials, but require surname + given-name agreement."""
+    author_first, author_last = _name_parts(author)
+    lab_first, lab_last = _name_parts(lab_name)
+    if not author_first or not lab_first or author_last != lab_last:
+        return False
+    return (
+        author_first == lab_first
+        or (len(author_first) == 1 and lab_first.startswith(author_first))
+        or (len(lab_first) == 1 and author_first.startswith(lab_first))
+    )
+
+
 def _bold_authors(authors: List[str], highlight: Set[str]) -> str:
-    # Match if full name case-insensitive equals any in highlight (normalize spaces/dashes)
-    def norm(s: str) -> str:
-        return re.sub(r"\s+", " ", s.strip().lower())
-    H = {norm(x) for x in highlight}
     aa = []
-    for a in authors:
-        if norm(a) in H:
-            aa.append(f"<strong>{html.escape(a)}</strong>")
+    for author in authors:
+        if any(_same_person(author, lab_name) for lab_name in highlight):
+            aa.append(f"<strong>{html.escape(author)}</strong>")
         else:
-            aa.append(html.escape(a))
+            aa.append(html.escape(author))
     return ", ".join(aa)
+
 
 def render_html(records: List[Dict[str,Any]], highlight: Set[str]) -> str:
     records = sorted(records, key=lambda r: (r.get("year",""), r.get("pmid","")), reverse=True)
@@ -163,17 +184,30 @@ def harvest_names_from_people(path: str|None) -> Set[str]:
         txt = open(path, "r", encoding="utf-8").read()
     except Exception:
         return names
-    # Heuristic: common full-name patterns (Firstname M. Lastname) including hyphens
-    for m in re.finditer(r"\b([A-Z][a-z]+(?: [A-Z]\.)? [A-Z][a-z]+(?:-[A-Z][a-z]+)?)\b", txt):
-        nm = m.group(1)
-        # filter out generic headings
-        if len(nm.split()) >= 2 and nm.lower() not in {"ang","home","people","research","publications"}:
-            names.add(nm)
-    # Always include PI variants
-    names.update({
-        "Stéphane Angers", "Stephane Angers", "S. Angers"
-    })
+
+    # Read the canonical roster used by the People page.
+    data_match = re.search(r"const\s+DATA_URL\s*=\s*['\"]([^'\"]+people\.json)['\"]", txt)
+    if data_match:
+        data_path = os.path.join(os.path.dirname(path), data_match.group(1))
+        try:
+            with open(data_path, "r", encoding="utf-8") as data_file:
+                people = json.load(data_file)
+            for person in people:
+                name = str(person.get("name", "")).strip()
+                if _name_parts(name)[0]:
+                    names.add(name)
+        except (OSError, ValueError, TypeError):
+            pass
+
+    # Include any names embedded in the HTML fallback data.
+    for match in re.finditer(r"\bname\s*:\s*['\"]([^'\"]+)['\"]", txt):
+        name = html.unescape(match.group(1)).strip()
+        if _name_parts(name)[0]:
+            names.add(name)
+
+    names.update({"Stéphane Angers", "Stephane Angers", "S. Angers"})
     return names
+
 
 def main():
     ap = argparse.ArgumentParser()
