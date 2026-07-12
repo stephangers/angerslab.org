@@ -494,38 +494,48 @@ function toggleMenu() {
   const metas = Array.from(document.querySelectorAll('.pub .meta'));
   if (!metas.length) return;
 
-  const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const stripAccents = (s) => s.normalize('NFD').replace(/\p{Diacritic}+/gu, '');
-  const normalize = (s) => (s||'').toLowerCase()
-    .replace(/^dr\.\s*/i, '')
-    .replace(/,?\s*ph\.?d\.?/i, '')
-    .trim();
+  const nameParts = (name) => {
+    const words = (name || '')
+      .normalize('NFD')
+      .replace(/\p{Diacritic}+/gu, '')
+      .toLowerCase()
+      .replace(/\b(?:dr|phd|md|msc|bsc|dphil)\b/g, ' ')
+      .match(/[a-z]+/g) || [];
+    return words.length >= 2
+      ? { first: words[0], last: words[words.length - 1] }
+      : null;
+  };
+
+  const samePerson = (author, labName) => {
+    const a = nameParts(author);
+    const p = nameParts(labName);
+    if (!a || !p || a.last !== p.last) return false;
+    return a.first === p.first
+      || (a.first.length === 1 && p.first.startsWith(a.first))
+      || (p.first.length === 1 && a.first.startsWith(p.first));
+  };
 
   try {
     const res = await fetch(DATA_URL, { cache: 'no-store' });
     if (!res.ok) throw new Error('failed to load people data');
     const people = await res.json();
-    const names = new Set();
-    people.forEach(p => {
-      const clean = normalize(p.name);
-      if (!clean) return;
-      const variants = new Set([clean, stripAccents(clean)]);
-      const bits = clean.split(/\s+/).filter(Boolean);
-      if (bits.length >= 2) {
-        const initLast = `${bits[0][0]} ${bits[bits.length - 1]}`;
-        variants.add(initLast);
-        variants.add(stripAccents(initLast));
-      }
-      variants.forEach(v => names.add(v));
-    });
+    const labNames = people.map(p => p.name).filter(Boolean);
 
     metas.forEach(el => {
-      let html = el.innerHTML;
-      names.forEach(name => {
-        const regex = new RegExp(`\\b${escapeRegExp(name)}\\b`, 'gi');
-        html = html.replace(regex, (match) => `<u class="lab-member">${match}</u>`);
-      });
-      el.innerHTML = html;
+      const authors = el.textContent.split(/,\s*/).filter(Boolean);
+      el.replaceChildren(...authors.flatMap((author, index) => {
+        const nodes = [];
+        if (index) nodes.push(document.createTextNode(', '));
+        if (labNames.some(name => samePerson(author, name))) {
+          const marked = document.createElement('u');
+          marked.className = 'lab-member';
+          marked.textContent = author;
+          nodes.push(marked);
+        } else {
+          nodes.push(document.createTextNode(author));
+        }
+        return nodes;
+      }));
     });
   } catch (err) {
     console.warn('[publications] unable to underline lab authors', err);
