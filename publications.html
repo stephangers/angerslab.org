@@ -495,12 +495,13 @@ function toggleMenu() {
   if (!metas.length) return;
 
   const nameParts = (name) => {
-    const words = (name || '')
+    const cleaned = (name || '')
       .normalize('NFD')
-      .replace(/\p{Diacritic}+/gu, '')
+      .replace(/[\u0300-\u036f]/g, '')
       .toLowerCase()
-      .replace(/\b(?:dr|phd|md|msc|bsc|dphil)\b/g, ' ')
-      .match(/[a-z]+/g) || [];
+      .replace(/^\s*dr\.?\s+/, '')
+      .replace(/,?\s*(?:ph\.?\s*d\.?|m\.?\s*d\.?|m\.?\s*sc\.?|b\.?\s*sc\.?|dphil)\s*$/i, '');
+    const words = cleaned.match(/[a-z]+/g) || [];
     return words.length >= 2
       ? { first: words[0], last: words[words.length - 1] }
       : null;
