@@ -126,7 +126,7 @@ def render_html(records: List[Dict[str,Any]], highlight: Set[str]) -> str:
         by_year.setdefault(r["year"], []).append(r)
     parts = ["<!-- PUBLIST:START -->"]
     for year, items in by_year.items():
-        parts.append(f'<section class="year-block" data-year="{html.escape(year)}">')
+        parts.append(f'<section class="year-block" id="y-{html.escape(year)}" data-year="{html.escape(year)}">')
         parts.append(f'  <h2 class="year">{html.escape(year)}</h2>')
         parts.append('  <ol class="pubs">')
         for it in items:

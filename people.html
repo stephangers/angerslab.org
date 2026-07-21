@@ -197,6 +197,8 @@ nav a { color: var(--text); opacity: .95; font-weight: 700; text-shadow: 0 1px 2
 .menu-btn { display: none; background: none; border: none; color: var(--text); font-size: 28px; }
 @media (max-width: 860px) {
       nav ul { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--panel); border-bottom: 2px solid color-mix(in oklab, var(--text) 10%, transparent); padding: 12px 18px; flex-direction: column; gap: 8px; }
+}
+nav a.active { font-weight: bold; text-decoration: underline; }
 /* Optional: prevent body from scrolling when menu is open */
 body.no-scroll { overflow: hidden; }
 </style>
@@ -263,7 +265,7 @@ body.no-scroll { overflow: hidden; }
 </div>
 <div>
 <b>Social</b>
-<p class="mt-1"><a aria-label="LinkedIn" href="#">LinkedIn</a> · <a aria-label="Google Scholar" href="#">Google Scholar</a> · <a aria-label="ORCID" href="#">ORCID</a></p>
+<p class="mt-1"><a aria-label="LinkedIn" href="https://www.linkedin.com/in/stephane-angers-%F0%9F%87%A8%F0%9F%87%A6-75981a6/?originalSubdomain=ca" rel="noopener" target="_blank">LinkedIn</a> · <a aria-label="Google Scholar" href="https://scholar.google.com/citations?user=6Wa4BbYAAAAJ&amp;hl=en" rel="noopener" target="_blank">Google Scholar</a> · <a aria-label="ORCID" href="https://orcid.org/0000-0001-7241-9044" rel="noopener" target="_blank">ORCID</a></p>
 <p class="mt-1">© <span id="year"></span> Angers Lab. All rights reserved.</p>
 </div>
 </div>
