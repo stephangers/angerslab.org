@@ -18,10 +18,6 @@
     
     
     .brand small{display:block;font-weight:600;color:var(--muted);line-height:1}
-    
-    
-    
-      }
 
     main{padding:clamp(28px,6vw,64px) 0}
     .page-head{padding:clamp(18px,4vw,36px) 0}
@@ -206,6 +202,8 @@ body.no-scroll { overflow: hidden; }
   nav ul.open { display: flex !important; }
 }
 </style>
+<link rel="stylesheet" href="assets/css/site.css"/>
+<script defer src="assets/js/site.js"></script>
 </head>
 <body class="people-page">
 <header>
@@ -215,18 +213,18 @@ body.no-scroll { overflow: hidden; }
       <span>Angers Lab<br/><small>Cellular Signaling &amp; Regeneration</small></span>
     </a>
     <nav>
-      <button class="menu-btn" aria-label="Open menu" onclick="toggleMenu()" aria-expanded="false">☰</button>
+      <button class="menu-btn" aria-controls="menu" aria-label="Open menu" onclick="toggleMenu()" aria-expanded="false">☰</button>
       <ul id="menu"><li><a href="index.html">Home</a></li>
 <li><a href="stephane-angers.html">Stephane Angers</a></li>
         <li><a href="research.html">Research</a></li>
         <li><a href="people.html" class="active"><span class="active"></span>People</a></li>
         <li><a href="publications.html">Publications</a></li>
         <li><a href="news.html">News</a></li>
-        <li><a href="#contact">Contact</a></li></ul>
+        <li><a href="index.html#contact">Contact</a></li></ul>
     </nav>
   </div>
 </header>
-<main class="wrap" id="main">
+<main class="wrap" id="main" tabindex="-1">
 <section class="page-head">
 <span class="chip">Donnelly Centre • U of T</span>
 <h1>People</h1>
@@ -262,8 +260,8 @@ body.no-scroll { overflow: hidden; }
 </nav>
 </div>
 <div>
-<b>Social</b>
-<p class="mt-1"><a aria-label="LinkedIn" href="#">LinkedIn</a> · <a aria-label="Google Scholar" href="#">Google Scholar</a> · <a aria-label="ORCID" href="#">ORCID</a></p>
+<b>PI profiles</b>
+<p class="mt-1"><a href="https://www.linkedin.com/in/stephane-angers-%F0%9F%87%A8%F0%9F%87%A6-75981a6/">LinkedIn</a> · <a href="https://scholar.google.com/citations?user=6Wa4BbYAAAAJ&amp;hl=en">Google Scholar</a> · <a href="https://orcid.org/0000-0001-7241-9044">ORCID</a></p>
 <p class="mt-1">© <span id="year"></span> Angers Lab. All rights reserved.</p>
 </div>
 </div>
