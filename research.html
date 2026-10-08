@@ -20,6 +20,10 @@
     
     
     .brand small{display:block;font-weight:600;color:var(--muted);line-height:1}
+    
+    
+    
+      }
     main{padding:clamp(24px,5vw,48px) 0}
     .page-head{padding:clamp(18px,4vw,36px) 0}
     h1{font-size:clamp(28px,4vw,44px);margin:10px 0 8px}
@@ -70,7 +74,6 @@ nav a { color: var(--text); opacity: .95; font-weight: 700; text-shadow: 0 1px 2
 @media (max-width: 860px) {
       nav ul { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--panel); border-bottom: 2px solid color-mix(in oklab, var(--text) 10%, transparent); padding: 12px 18px; flex-direction: column; gap: 8px; }
 
-}
 nav a.active { font-weight: bold; text-decoration: underline; }
 /* Optional: prevent body from scrolling when menu is open */
 body.no-scroll { overflow: hidden; }
@@ -81,8 +84,6 @@ body.no-scroll { overflow: hidden; }
   nav ul.open { display: flex !important; }
 }
 </style>
-<link rel="stylesheet" href="assets/css/site.css"/>
-<script defer src="assets/js/site.js"></script>
 </head>
 <body>
   <a class="sr-only" href="#main">Skip to content</a>
@@ -93,19 +94,19 @@ body.no-scroll { overflow: hidden; }
       <span>Angers Lab<br/><small>Cellular Signaling &amp; Regeneration</small></span>
     </a>
     <nav>
-      <button class="menu-btn" aria-controls="menu" aria-label="Open menu" onclick="toggleMenu()" aria-expanded="false">☰</button>
+      <button class="menu-btn" aria-label="Open menu" onclick="toggleMenu()" aria-expanded="false">☰</button>
       <ul id="menu"><li><a href="index.html">Home</a></li>
 <li><a href="stephane-angers.html">Stephane Angers</a></li>
         <li><a href="research.html" class="active"><span class="active"></span>Research</a></li>
         <li><a href="people.html">People</a></li>
         <li><a href="publications.html">Publications</a></li>
         <li><a href="news.html">News</a></li>
-        <li><a href="index.html#contact">Contact</a></li></ul>
+        <li><a href="#contact">Contact</a></li></ul>
     </nav>
   </div>
 </header>
 
-  <main id="main" tabindex="-1">
+  <main id="main">
     <section class="page-head wrap">
       <span class="chip">Mechanism → Modulation → Medicine</span>
       <h1>Research</h1>
@@ -113,31 +114,31 @@ body.no-scroll { overflow: hidden; }
     </section>
 
     <section class="wrap">
-      <div class="research-programs">
+      <div class="grid">
         <!-- THEME 1 -->
         <article class="card theme">
           <div class="figure"><img src="assets/images/theme1_wnt_signaling.png" alt="Wnt receptor complex with downstream signaling arrows"></div>
-          <div class="program-copy"><p class="eyebrow">Program 01</p><h2>Wnt signalling</h2><p class="lead">How do cells interpret Wnt signals? We investigate the receptor complexes and molecular machinery that control stem cell behaviour.</p>
-          <div class="program-detail"><h3>Approach &amp; selected findings</h3><p class="summary">We study the Wnt pathway from receptor complex activation to nuclear output. We use cell biology, functional genomics and biochemical approaches. We defined how Dishevelled assemblies form at the membrane and correlate with pathway activation (<a href="publications.html#y-2020">PNAS 2020</a>), and uncovered an IPO11-dependent route for β-catenin nuclear import in a subset of colorectal cancers (<a href="publications.html#y-2020">J Cell Biol 2020</a>).</p><p class="summary">We also analyze receptor–coreceptor usage (FZD/LRP5/6) and scaffolding dynamics to explain how 19 Wnts and 10 FZDs encode specificity.</p><p class="summary">To precisely probe this code, we engineer receptor-selective Wnt surrogates, including tetravalent antibodies that potently and specifically activate Wnt/Frizzled signaling in cells, organoids, and mice (<a href="publications.html#y-2019">eLife 2019</a>). Using these tools, we uncovered a novel regulatory mechanism of the Wnt pathway during neural patterning involving modulation of FZD5 cell surface expression levels (<a href="publications.html#y-2024">Development 2024</a>). More recently, we described a two-step mechanism for Wnt receptor activation (<a href="publications.html#y-2025">Submitted</a>).</p><p class="summary">For broader context, see our recent review of the Wnt pathway (<a href="publications.html#y-2025">Nat Rev Mol Cell Biol 2025</a>) and recent perspective on therapeutic modulation of the Wnt pathway (<a href="publications.html#y-2023">Trends Pharmacol Sci 2023</a>).</p>
-          </div></div><div class="actions">
+          <h3>Theme 1 — Molecular Logic of Wnt Signaling</h3>
+          <p class="summary">We study the Wnt pathway from receptor complex activation to nuclear output. Using cell biology, functional genomics and biochemical approaches. We defined how Dishevelled assemblies form at the membrane and correlate with pathway activation (<a href="publications.html#y-2020">PNAS 2020</a>), and uncovered an IPO11-dependent route for β-catenin nuclear import in a subset of colorectal cancers (<a href="publications.html#y-2020">J Cell Biol 2020</a>). We also analyze receptor–coreceptor usage (FZD/LRP5/6) and scaffolding dynamics to explain how 19 Wnts and 10 FZDs encode specificity. To precisely probe this code, we engineer receptor-selective Wnt surrogates, including tetravalent antibodies that potently and specifically activate Wnt/Frizzled signaling in cells, organoids, and mice (<a href="publications.html#y-2019">eLife 2019</a>). Using these tools, we uncovered a novel regulatory mechanism of the Wnt pathway during neural patterning involving modulation of FZD5 cell surface expression levels (<a href="publications.html#y-2024">Development 2024</a>). More recently, we described a two steps mechanisms for Wnt receptor activation (<a href="publications.html#y-2025">Submitted</a>) For broader context, see our recent review of the Wnt pathway (<a href="publications.html#y-2025">Nat Rev Mol Cell Biol 2025</a>) and recent perspective on therapeutic modulation of the Wnt payhway (<a href="publications.html#y-2023">Trends Pharmacol Sci 2023</a>).</p>
+          <div class="actions">
           </div>
         </article>
 
         <!-- THEME 2 -->
         <article class="card theme">
           <div class="figure"><img src="assets/images/theme2_wnt_therapies.png" alt="Receptor-specific Wnt modulation with syringe and organoid symbols"></div>
-          <div class="program-copy"><p class="eyebrow">Program 02</p><h2>Receptor-guided therapies</h2><p class="lead">We engineer receptor-specific Wnt agonists and antagonists to study tissue repair and develop therapeutic strategies.</p>
-          <div class="program-detail"><h3>Approach &amp; selected findings</h3><p class="summary">Our receptor-specific Wnt surrogate platform spans vascular biology, organ regeneration, and directed differentiation. <b>Vascular barrier repair:</b> FZD4-selective agonists restore blood–retina barrier integrity and rescue retinopathy phenotypes (<a href="publications.html#y-2021">EMBO Mol Med 2021</a>; <a href="publications.html#y-2023">iScience 2023</a>).</p><p class="summary"><b>Lung regeneration:</b> FZD5/6-targeted agonists activate AT2 stem cells and drive alveolar repair while avoiding pro-fibrotic programs (<a href="publications.html#y-2023">Cell 2023</a>).</p><p class="summary"><b>Liver regeneration:</b> single-cell/spatial transcriptomics uncovered a Wnt2/Wnt9b endothelial circuit controlling pericentral identity and regeneration, and receptor-specific agonism restores zonal Wnt activity to promote repair (<a href="publications.html#y-2022">Cell Rep Med 2022</a>).</p><p class="summary"><b>Directed differentiation:</b> temporally tuned FZD5 activation enables efficient ventral midbrain dopaminergic neuron production (<a href="publications.html#y-2024">Development 2024</a>), while selective FZD2/7 activation biases mesoderm toward paraxial or lateral fates (<a href="publications.html#y-2025">Stem Cell Reports 2025</a>).</p>
-          </div></div><div class="actions">
+          <h3>Theme 2 — Receptor-Specific Wnt Modulation for cancer therapies and tissue Regeneration</h3>
+          <p class="summary">Our receptor-specific Wnt surrogate platform spans vascular biology, organ regeneration, and directed differentiation. <b>Vascular barrier repair:</b> FZD4-selective agonists restore blood–retina barrier integrity and rescue retinopathy phenotypes (<a href="publications.html#y-2021">EMBO Mol Med 2021</a>; <a href="publications.html#y-2023">iScience 2023</a>). <b>Lung regeneration:</b> FZD5/6-targeted agonists activate AT2 stem cells and drive alveolar repair while avoiding pro-fibrotic programs (<a href="publications.html#y-2023">Cell 2023</a>). <b>Liver regeneration:</b> single-cell/spatial transcriptomics uncovered a Wnt2/Wnt9b endothelial circuit controlling pericentral identity and regeneration, and receptor-specific agonism restores zonal Wnt activity to promote repair (<a href="publications.html#y-2022">Cell Rep Med 2022</a>). <b>Directed differentiation:</b> temporally tuned FZD5 activation enables efficient ventral midbrain dopaminergic neuron production (<a href="publications.html#y-2024">Development 2024</a>), while selective FZD2/7 activation biases mesoderm toward paraxial or lateral fates (<a href="publications.html#y-2025">Stem Cell Reports 2025</a>).</p>
+          <div class="actions">
           </div>
         </article>
 
         <!-- THEME 3 -->
         <article class="card theme">
           <div class="figure"><img src="assets/images/theme3_GBM.png" alt="DNA helix and glioblastoma-like cell icon"></div>
-          <div class="program-copy"><p class="eyebrow">Program 03</p><h2>Glioblastoma genomics</h2><p class="lead">We use genome-scale CRISPR screens in patient-derived models to identify cancer dependencies and mechanisms of treatment resistance.</p>
-          <div class="program-detail"><h3>Approach &amp; selected findings</h3><p class="summary">We map genetic dependencies and drug responses in patient-derived glioblastoma stem cells (GSCs) using genome-scale CRISPR. Early work exposed mechanisms of temozolomide sensitivity and resistance (<a href="publications.html#y-2019">Cell Reports 2019</a>) and charted a developmental ↔ injury-response state gradient that explains functional heterogeneity (<a href="publications.html#y-2021">Nat Cancer 2021</a>).</p><p class="summary">Recent fitness screens identify state-specific vulnerabilities (e.g., transcription factors, chromatin regulators, cytokine modulators) and actionable chemogenetic interactions (<a href="publications.html#y-2024">Cancer Research 2024</a>). We also contribute methods for discovering resistance mechanisms with CRISPR-Cas9 platforms (<a href="publications.html#y-2022">Methods Mol Biol 2022</a>).</p>
-          </div></div><div class="actions">
+          <h3>Theme 3 — Functional Genomics of Glioblastoma Stem Cells</h3>
+          <p class="summary">We map genetic dependencies and drug responses in patient-derived glioblastoma stem cells (GSCs) using genome-scale CRISPR. Early work exposed mechanisms of temozolomide sensitivity and resistance (<a href="publications.html#y-2019">Cell Reports 2019</a>) and charted a developmental ↔ injury-response state gradient that explains functional heterogeneity (<a href="publications.html#y-2021">Nat Cancer 2021</a>). Recent fitness screens identify state-specific vulnerabilities (e.g., transcription factors, chromatin regulators, cytokine modulators) and actionable chemogenetic interactions (<a href="publications.html#y-2024">Cancer Research 2024</a>). We also contribute methods for discovering resistance mechanisms with CRISPR-Cas9 platforms (<a href="publications.html#y-2022">Methods Mol Biol 2022</a>).</p>
+          <div class="actions">
           </div>
         </article>
       </div>
@@ -161,8 +162,8 @@ body.no-scroll { overflow: hidden; }
         </nav>
       </div>
       <div>
-        <b>PI profiles</b>
-        <p class="mt-1"><a href="https://www.linkedin.com/in/stephane-angers-%F0%9F%87%A8%F0%9F%87%A6-75981a6/">LinkedIn</a> · <a href="https://scholar.google.com/citations?user=6Wa4BbYAAAAJ&amp;hl=en">Google Scholar</a> · <a href="https://orcid.org/0000-0001-7241-9044">ORCID</a></p>
+        <b>Social</b>
+        <p class="mt-1"><a href="#" aria-label="LinkedIn">LinkedIn</a> · <a href="#" aria-label="Google Scholar">Google Scholar</a> · <a href="#" aria-label="ORCID">ORCID</a></p>
         <p class="mt-1">© <span id="year"></span> Angers Lab. All rights reserved.</p>
       </div>
     </div>

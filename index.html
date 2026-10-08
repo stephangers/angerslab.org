@@ -49,6 +49,12 @@
     
     
     .brand small { display: block; font-weight: 600; color: var(--muted); line-height: 1; }
+    
+    
+    
+    
+      
+    }
     .hero { padding: clamp(28px, 6vw, 64px) 0 clamp(24px, 5vw, 48px); }
     .hero-grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: clamp(20px, 5vw, 48px); align-items: center; }
     @media (max-width: 980px) { .hero-grid { grid-template-columns: 1fr; } }
@@ -172,15 +178,47 @@ nav a { color: var(--text); opacity: .95; font-weight: 700; text-shadow: 0 1px 2
 @media (max-width: 860px) {
       nav ul { display: none; position: absolute; top: 64px; left: 0; right: 0; background: var(--panel); border-bottom: 2px solid color-mix(in oklab, var(--text) 10%, transparent); padding: 12px 18px; flex-direction: column; gap: 8px; }
 
-}
 nav a.active { font-weight: bold; text-decoration: underline; }
 /* Optional: prevent body from scrolling when menu is open */
 body.no-scroll { overflow: hidden; }
 </style>
 
-<link rel="stylesheet" href="assets/css/site.css"/>
-
-<script defer src="assets/js/site.js"></script>
+<!-- Splide CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/css/splide.min.css"/>
+<style>
+/* Splide iPhone-friendly sizing: avoid cropping and jitter */
+.splide { margin: 0 auto; max-width: var(--maxw); }
+.splide__track { border-radius: 16px; overflow: hidden; background: var(--panel); }
+.splide__slide {
+  display:flex; align-items:center; justify-content:center;
+  background: var(--panel);
+  will-change: transform;
+}
+/* Use dvh on iOS 16+; fallback to vh. Keep images crisp and contained */
+.splide__slide img {
+  max-width: 100%;
+  height: auto;
+  max-height: 78dvh;
+  object-fit: contain;
+  display: block;
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+}
+@supports not (height: 100dvh) {
+  .splide__slide img { max-height: 75vh; }
+}
+/* Slight inner padding so tall images don't touch edges on phones */
+@media (max-width: 600px){
+  .splide__slide { padding: 8px; }
+}
+#status { color:#6b7280; font-size:.9rem; }
+</style>
+<style>
+@media (max-width: 860px) {
+  .menu-btn { display: inline-block !important; }
+  nav ul.open { display: flex !important; }
+}
+</style>
 </head>
 <body>
 <a class="sr-only" href="#main">Skip to content</a>
@@ -191,7 +229,7 @@ body.no-scroll { overflow: hidden; }
       <span>Angers Lab<br/><small>Cellular Signaling &amp; Regeneration</small></span>
     </a>
     <nav>
-      <button class="menu-btn" aria-controls="menu" aria-label="Open menu" aria-expanded="false">☰</button>
+      <button class="menu-btn" aria-label="Open menu" onclick="toggleMenu()" aria-expanded="false">☰</button>
       <ul id="menu"><li><a href="index.html" class="active"><span class="active"></span>Home</a></li>
 <li><a href="stephane-angers.html">Stephane Angers</a></li>
         <li><a href="research.html">Research</a></li>
@@ -203,7 +241,6 @@ body.no-scroll { overflow: hidden; }
   </div>
 </header>
 
-<main id="main" tabindex="-1">
 <section id="home" class="hero">
   <div class="wrap hero-grid">
     <div>
@@ -211,25 +248,22 @@ body.no-scroll { overflow: hidden; }
         <img src="assets/images/donnelly-logo.png" alt="Donnelly Centre Logo"/>
         <img src="assets/images/uoft-logo.png" alt="University of Toronto Logo"/>
       </div>
-      <p class="eyebrow">Angers Lab · University of Toronto</p><h1>Decoding cell signals to advance <span class="hero-accent">cancer therapy and regeneration.</span></h1>
+      <h1>Decoding Cellular Signaling to understand <span style="background:linear-gradient(135deg,var(--brand),var(--brand-2));-webkit-background-clip:text;background-clip:text;color:transparent">tissue homeostasis, treat cancer and promote regeneration</span>.</h1>
       <p class="lead">We investigate how the Wnt family of growth factors and other signalling systems orchestrate tissue renewal and disease. Our work blends functional genomics, protein engineering, and cell biology to build therapies.</p>
       <div class="cta-row">
         <a class="btn fill" href="research.html">Explore our research</a>
-        <a class="btn" href="#join">Join the lab</a>
+        <a class="btn" href="publications.html">See publications</a>
       </div>
     </div>
-    <figure class="hero-visual"><img src="assets/carousel/angers-lab-picnic-2024.jpg" alt="Angers Lab team together at the 2024 lab picnic" width="900" height="675" fetchpriority="high"/><figcaption>Discovery is a team effort. Meet <a href="people.html">the people behind our science</a>.</figcaption></figure>
   </div>
 </section>
 
-<section class="wrap research-gallery" aria-labelledby="gallery-title">
-  <div class="section-head"><div><p class="eyebrow">Inside our science</p><h2 id="gallery-title">From signals to new possibilities</h2></div><a href="research.html">Explore our programs →</a></div>
-  <div class="gallery-frame">
-    <figure class="gallery-slide"><img src="assets/carousel/wnt-canonical-signaling-schematic.jpg" alt="Schematic of canonical Wnt signalling" loading="lazy"/><figcaption><b>The language of cell signalling</b><span>Understanding how Wnt pathways coordinate cell behaviour.</span></figcaption></figure>
-    <figure class="gallery-slide" hidden><img src="assets/carousel/intestinal-organoids-brightfield.jpg" alt="Brightfield image of intestinal organoids" loading="lazy"/><figcaption><b>Modelling tissue renewal</b><span>Organoid models connect molecular mechanisms to tissue biology.</span></figcaption></figure>
-    <figure class="gallery-slide" hidden><img src="assets/carousel/crispr-screen-workflow-alt.png" alt="Diagram of the CRISPR screening workflow" loading="lazy"/><figcaption><b>Finding cancer vulnerabilities</b><span>Functional genomics helps reveal dependencies in cancer cells.</span></figcaption></figure>
-  </div>
-  <div class="gallery-controls" hidden><button class="btn" id="gallery-prev" aria-label="Previous research image">←</button><span id="gallery-count" aria-live="polite">1 / 3</span><button class="btn" id="gallery-next" aria-label="Next research image">→</button><button class="btn" id="gallery-play" aria-pressed="false">Play slideshow</button></div>
+<section class="wrap" aria-label="Research visuals">
+  <section id="auto-splide" class="splide" aria-label="Lab figures carousel">
+    <div class="splide__track">
+      <ul id="slides" class="splide__list"></ul>
+    </div>
+  </section>
 </section>
 
 <section id="about">
@@ -257,9 +291,6 @@ body.no-scroll { overflow: hidden; }
   </div>
 </section>
 
-<section class="wrap" aria-labelledby="featured-title"><div class="section-head"><h2 id="featured-title">Selected publications</h2><a href="publications.html">Browse all publications →</a></div><div class="feature-grid"><article class="card"><p class="eyebrow">2024 · Development</p><h3>Exploiting spatiotemporal regulation of FZD5 during neural patterning for efficient ventral midbrain specification.</h3><a href="https://doi.org/10.1242/dev.202545">Read the paper →</a></article><article class="card"><p class="eyebrow">2023 · Cell</p><h3>Targeted alveolar regeneration with Frizzled-specific agonists.</h3><a href="https://doi.org/10.1016/j.cell.2023.05.022">Read the paper →</a></article><article class="card"><p class="eyebrow">2021 · Nature Cancer</p><h3>Gradient of Developmental and Injury Response transcriptional states defines functional vulnerabilities underpinning glioblastoma heterogeneity.</h3><a href="https://doi.org/10.1038/s43018-020-00154-9">Read the paper →</a></article></div></section>
-<section class="wrap" aria-labelledby="latest-title"><div class="section-head"><div><p class="eyebrow">Research &amp; community</p><h2 id="latest-title">In the news</h2></div><a href="news.html">All news →</a></div><div class="feature-grid" id="home-news"><article class="card"><p class="sub">pharmaphorum</p><h3><a href="https://news.google.com/rss/articles/CBMikgFBVV95cUxQY3BiYWNrUWdUZm50dXRuZndkcXY5WEphX05FZjVobjh4WkNUY0hFRWFIMmF2ZXM1eFhlNWtSaDNKazV2UUp6R0d3c21Qbk1VcG4zZXRFbDJHekp1bWhubnVHOHdTUVlzMGFHYWZ3RHlUTnRSN2RESEVoVXdKdHhONmVEdlAxbGNUREtCc2cyZF9Sdw?oc=5">Wnt drug gives MSD first eye disease win after EyeBio deal - pharmaphorum</a></h3><p class="sub">2026-09-25</p></article><article class="card"><p class="sub">British Business Bank</p><h3><a href="https://news.google.com/rss/articles/CBMia0FVX3lxTE5NQVctTFJoQ2V2ekFSYzhsMURmaXVCZ1BxTW45TnBFWHpYWldTSzE3ZHNrTEQwM0pLdTMwOFc2eUYtNHJva21lUTJDVlZLb0EwN1o0VlZBalA3NmZXUWlzdUYzdXJPbUx5VzF3?oc=5">EyeBio - British Business Bank</a></h3><p class="sub">2026-06-08</p></article><article class="card"><p class="sub">University of Toronto</p><h3><a href="https://news.google.com/rss/articles/CBMiqwFBVV95cUxORFlKdlQ2RGxfZUJSODk1RlFyYjZJYmVldXZjZzFrT0d3dUxBMU5yeGt0c0VZYkd4djJISHBuNXNZR0NFNTJmcktMTTFVbkZfUXpQTG1ucGhwWkRSWGcxTFVtc2hwVlc0dDl0VC05WEs1aGREWkJhYnJEaDFCNU4zTzFiZXdkOENER1RZdnJPTE9NLWRxQXhubzRtcnBnX01DMWhIVVVydEpDYTg?oc=5">20 years of discovery: the Donnelly Centre celebrates a two-decade milestone - University of Toronto</a></h3><p class="sub">2025-11-06</p></article></div></section>
-<section class="wrap" id="join"><div class="join-panel"><div><p class="eyebrow">Build what comes next</p><h2>Join the lab</h2><p>Interested in Wnt signalling, protein engineering, or cancer genomics? Get in touch to discuss potential opportunities.</p><p>Include your CV and a short statement of research interests.</p></div><a class="btn fill" href="mailto:angerslab@gmail.com?subject=Angers%20Lab%20opportunities">Introduce yourself →</a></div></section>
 <section id="contact">
   <div class="wrap">
     <div class="section-head">
@@ -269,14 +300,13 @@ body.no-scroll { overflow: hidden; }
     <div class="grid">
       <div class="card" style="grid-column: span 7">
         <h3>Get in touch</h3>
-        <p class="mt-2">Email: <a href="mailto:angerslab@gmail.com">angerslab@gmail.com</a></p>
+        <p class="mt-2">Email: <a href="mailto:info@angerslab.org">angerslab@gmail.com</a></p>
         <p>Address: 160 College St, Toronto, ON</p>
         <p class="mt-2">For positions, include a CV and a short statement of research interests.</p>
       </div>
   </div>
 </section>
 
-</main>
 <footer>
   <div class="wrap footer-grid">
     <div>
@@ -299,12 +329,138 @@ body.no-scroll { overflow: hidden; }
   </div>
 </footer>
 
+<script>
+  
+  document.getElementById('year').textContent = new Date().getFullYear();
+  document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+    const id = a.getAttribute('href');
+    if(id.length > 1){ e.preventDefault(); document.querySelector(id).scrollIntoView({behavior:'smooth'}); }
+  }));
 
+  // --- Non-Splide carousel init (kept in case it's used elsewhere) ---
+  (function(){
+    const root = document.getElementById('home-carousel');
+    if(!root) return;
+    const slidesWrap = root.querySelector('.slides');
+    const slides = Array.from(root.querySelectorAll('.slide'));
+    const dotsWrap = root.querySelector('.dots');
+    let i = 0, timer;
 
+    slides.forEach((_, idx)=>{
+      const b = document.createElement('button');
+      b.className = 'dot';
+      b.setAttribute('role','tab');
+      b.setAttribute('aria-label','Go to slide ' + (idx+1));
+      b.addEventListener('click', ()=> go(idx, true));
+      dotsWrap.appendChild(b);
+    });
 
+    function update(){
+      slidesWrap.style.transform = `translateX(-${i*100}%)`;
+      dotsWrap.querySelectorAll('.dot').forEach((d, idx)=> d.setAttribute('aria-selected', idx===i ? 'true' : 'false'));
+    }
+    function go(n, user){
+      i = (n + slides.length) % slides.length;
+      update();
+      if(user) restart();
+    }
+    function next(){ go(i+1); }
+    function prev(){ go(i-1); }
 
+    root.querySelector('.next').addEventListener('click', ()=> next());
+    root.querySelector('.prev').addEventListener('click', ()=> prev());
 
+    function start(){ timer = setInterval(next, 5000); }
+    function stop(){ clearInterval(timer); }
+    function restart(){ stop(); start(); }
 
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
 
+    update(); start();
+  })();
+</script>
+
+<!-- Splide -->
+<script defer src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4/dist/js/splide.min.js"></script>
+<p id="status"></p>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const status = document.getElementById('status');
+  const listEl = document.getElementById('slides');
+  const manifestUrl = 'assets/carousel/manifest.json';
+
+  try {
+    const res = await fetch(manifestUrl, { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+    const data = await res.json();
+    const images = Array.isArray(data.images) ? data.images : [];
+
+    if (images.length === 0) {
+      status.textContent = 'No images found in assets/carousel/.';
+    } else {
+      for (const rel of images) {
+        const li = document.createElement('li');
+        li.className = 'splide__slide';
+        const img = document.createElement('img');
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.src = rel;
+        img.alt = '';
+        li.appendChild(img);
+        listEl.appendChild(li);
+      }
+
+      new Splide('#auto-splide', {
+        type: 'loop',
+        pagination: true,
+        arrows: true,
+        gap: '0.5rem',
+        // Key changes for iPhone rendering:
+        // - Let Splide manage width; avoid autoWidth which can shrink images on mobile.
+        autoHeight: true,
+        focus: 'center',
+        speed: 600,
+        autoplay: true,
+        interval: 5000,
+        pauseOnHover: true,
+        pauseOnFocus: true,
+        breakpoints: {
+          600: { arrows: false }
+        }
+      }).mount();
+
+      status.textContent = 'Loaded ' + images.length + ' image' + (images.length > 1 ? 's' : '');
+    }
+  } catch (err) {
+    status.style.color = '#b91c1c';
+    status.textContent = 'Failed to load manifest: ' + err.message + ' — ensure assets/carousel/manifest.json is published.';
+  }
+});
+</script>
+<script>
+(function () {
+  const btn  = document.querySelector('.menu-btn');
+  const menu = document.getElementById('menu');
+
+  if (!btn || !menu) return;
+
+  function set(open) {
+    menu.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', String(open));
+    document.body.classList.toggle('no-scroll', open);
+  }
+
+  window.toggleMenu = () => set(!menu.classList.contains('open'));
+
+  // Close the menu when a link is tapped
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => set(false)));
+
+  // If resized back to desktop, ensure menu is closed and layout resets
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 860) set(false);
+  });
+})();
+</script>
 </body>
 </html>

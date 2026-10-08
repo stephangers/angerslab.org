@@ -83,8 +83,6 @@
 /* Optional: prevent body from scrolling when menu is open */
 body.no-scroll { overflow: hidden; }
 </style>
-<link rel="stylesheet" href="assets/css/site.css"/>
-<script defer src="assets/js/site.js"></script>
 </head>
 <body id="angers-page">
 <a class="sr-only" href="#main">Skip to content</a>
@@ -95,7 +93,7 @@ body.no-scroll { overflow: hidden; }
       <span>Angers Lab<br/><small>Cellular Signaling &amp; Regeneration</small></span>
     </a>
     <nav>
-      <button class="menu-btn" aria-controls="menu" aria-label="Open menu" onclick="toggleMenu()" aria-expanded="false">☰</button>
+      <button class="menu-btn" aria-label="Open menu" onclick="toggleMenu()" aria-expanded="false">☰</button>
       <ul id="menu">
         <li><a href="index.html">Home</a></li>
         <li><a href="stephane-angers.html" class="active"><span class="active"></span>Stephane Angers</a></li>
@@ -103,12 +101,12 @@ body.no-scroll { overflow: hidden; }
         <li><a href="people.html">People</a></li>
         <li><a href="publications.html">Publications</a></li>
         <li><a href="news.html">News</a></li>
-        <li><a href="index.html#contact">Contact</a></li>
+        <li><a href="#contact">Contact</a></li>
       </ul>
     </nav>
   </div>
 </header>
-<main class="wrap" id="main" tabindex="-1">
+<main class="wrap" id="main">
   <section class="hero tight">
     <!-- Top header bits -->
     <div class="grid">
@@ -212,7 +210,7 @@ body.no-scroll { overflow: hidden; }
       </nav>
     </div>
     <div>
-      <b>PI profiles</b>
+      <b>Social</b>
       <p class="mt-1"><a aria-label="LinkedIn" href="https://www.linkedin.com/in/stephane-angers-%F0%9F%87%A8%F0%9F%87%A6-75981a6/?originalSubdomain=ca" rel="noopener" target="_blank">LinkedIn</a> · <a aria-label="Google Scholar" href="https://scholar.google.com/citations?user=6Wa4BbYAAAAJ&amp;hl=en" rel="noopener" target="_blank">Google Scholar</a> · <a aria-label="ORCID" href="https://orcid.org/0000-0001-7241-9044" rel="noopener" target="_blank">ORCID</a></p>
       <p class="mt-1">© <span id="year"></span> Angers Lab. All rights reserved.</p>
     </div>
